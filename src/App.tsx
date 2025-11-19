@@ -22,31 +22,38 @@ export default function App() {
   const [activeModal, setActiveModal] = useState<null | { title: string; body: string }>(null);
 
   return (
-    <div className="min-h-screen bg-night text-parchment">
-      <Header onOpenCart={() => setCartOpen(true)} />
-      <main className="space-y-16 pb-20">
-        <Hero onLearnMore={() => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" })} />
-        <HowItWorks />
-        <Benefits />
-        <Shop />
-        <Reviews />
-        <FAQ />
-        <EmailCapture />
-      </main>
-      <Footer
-        onOpenModal={(title) => {
-          setActiveModal({ title, body: modalCopy[title] });
-        }}
-      />
+    <div className="relative min-h-screen overflow-hidden bg-night text-parchment">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-24 top-20 h-96 w-96 rounded-full bg-wine/30 blur-[140px]" />
+        <div className="absolute right-0 top-0 h-[32rem] w-[32rem] rounded-full border border-gold/20 opacity-60 blur-3xl" />
+        <div className="absolute inset-x-0 bottom-0 h-80 bg-gradient-to-t from-black/70 to-transparent" />
+      </div>
+      <div className="relative z-10">
+        <Header onOpenCart={() => setCartOpen(true)} />
+        <main className="space-y-24 pb-24 pt-6">
+          <Hero onLearnMore={() => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" })} />
+          <HowItWorks />
+          <Benefits />
+          <Shop />
+          <Reviews />
+          <FAQ />
+          <EmailCapture />
+        </main>
+        <Footer
+          onOpenModal={(title) => {
+            setActiveModal({ title, body: modalCopy[title] });
+          }}
+        />
+      </div>
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
       {activeModal && (
         <>
-          <div className="fixed inset-0 z-50 bg-black/60" onClick={() => setActiveModal(null)} />
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="max-w-lg rounded-3xl border border-gold/30 bg-cocoa/90 p-6 shadow-glow">
-              <h3 className="font-serif text-2xl text-gold">{activeModal.title}</h3>
+          <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <div className="glass-card max-w-lg rounded-[32px] border border-gold/30 p-8">
+              <h3 className="font-serif text-3xl text-gold">{activeModal.title}</h3>
               <p className="mt-4 text-parchment/80">{activeModal.body}</p>
-              <button className="button-secondary mt-6" onClick={() => setActiveModal(null)}>
+              <button className="button-secondary mt-8" onClick={() => setActiveModal(null)}>
                 Close
               </button>
             </div>

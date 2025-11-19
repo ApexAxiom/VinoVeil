@@ -6,6 +6,7 @@ export type Product = {
   description: string;
   price: number;
   details: string[];
+  badge?: string;
 };
 
 export type CartItem = {

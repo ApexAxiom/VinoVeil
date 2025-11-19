@@ -36,17 +36,18 @@ const reviews: Review[] = [
 
 export const Reviews = () => {
   return (
-    <section id="reviews" className="bg-cocoa/60">
+    <section id="reviews" className="bg-gradient-to-b from-black/40 via-cocoa/40 to-black/70">
       <div className="section-container relative">
-        <div className="absolute inset-0 -top-10 flex justify-center opacity-10">
-          <span className="text-[10rem] text-parchment/50">&ldquo;</span>
-        </div>
+        <div className="absolute inset-x-0 -top-20 flex justify-center text-[12rem] text-gold/5">&ldquo;</div>
         <div className="relative space-y-6 text-center">
-          <p className="text-sm uppercase tracking-[0.3em] text-gold">Social proof</p>
+          <p className="text-xs uppercase tracking-[0.5em] text-gold/70">Social proof</p>
           <h2 className="font-serif text-3xl text-parchment">Loved by outdoor wine lovers</h2>
+          <p className="mx-auto max-w-3xl text-parchment/70">
+            Hosts, sommeliers, and patio regulars swear by the calm VinoVeil brings to every glass.
+          </p>
           <div className="grid gap-6 text-left md:grid-cols-3">
             {reviews.map((review) => (
-              <div key={review.name} className="rounded-3xl border border-parchment/10 bg-night/60 p-6">
+              <div key={review.name} className="glass-card rounded-3xl p-6">
                 <div className="flex items-center space-x-2">
                   {Array.from({ length: review.rating }).map((_, index) => (
                     <Star key={index} />
