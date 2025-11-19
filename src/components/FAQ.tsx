@@ -47,16 +47,17 @@ export const FAQ = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <section id="faq" className="section-container space-y-8">
+    <section id="faq" className="section-container space-y-10">
       <div className="text-center">
-        <p className="text-sm uppercase tracking-[0.3em] text-gold">Need to know</p>
+        <p className="text-xs uppercase tracking-[0.5em] text-gold/70">Need to know</p>
         <h2 className="font-serif text-3xl text-parchment">FAQ</h2>
+        <p className="mt-3 text-parchment/70">Details curated from our customer care inbox.</p>
       </div>
       <div className="space-y-4">
         {faqs.map((faq, index) => {
           const isOpen = openIndex === index;
           return (
-            <div key={faq.question} className="rounded-2xl border border-parchment/10 bg-cocoa/80 p-4">
+            <div key={faq.question} className="glass-card rounded-3xl p-5">
               <button
                 className="flex w-full items-center justify-between text-left text-parchment"
                 onClick={() => setOpenIndex(isOpen ? null : index)}
