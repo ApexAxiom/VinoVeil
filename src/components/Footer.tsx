@@ -10,6 +10,7 @@ export const Footer = ({ onOpenModal }: FooterProps) => {
           <p className="font-serif text-2xl text-gold">VinoVeil</p>
           <p className="text-xs uppercase tracking-[0.4em] text-parchment/50">Outdoor Cellar Essentials</p>
           <p className="mt-2">© {new Date().getFullYear()} VinoVeil. All rights reserved.</p>
+          <p className="text-parchment/60">An ApexAxiom Company.</p>
         </div>
         <div className="flex flex-wrap justify-center gap-4">
           {(["Contact", "Privacy Policy", "Terms"] as const).map((label) => (
