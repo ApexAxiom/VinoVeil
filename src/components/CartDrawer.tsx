@@ -16,7 +16,7 @@ const CloseIcon = () => (
   </svg>
 );
 
-const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/your-placeholder";
+const STRIPE_PAYMENT_LINK = "https://buy.stripe.com/your-placeholder"; // TODO: Replace with real Stripe Payment Link
 
 type CartDrawerProps = {
   open: boolean;
@@ -87,7 +87,16 @@ export const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
           <button
             disabled={!items.length}
             className="button-primary w-full disabled:cursor-not-allowed disabled:border-gold/30 disabled:bg-gold/40"
-            onClick={() => window.open(STRIPE_PAYMENT_LINK, "_blank")}
+            onClick={() => {
+              if (STRIPE_PAYMENT_LINK.includes("your-placeholder")) {
+                console.warn(
+                  "Stripe checkout link is still a placeholder. Configure a real Stripe Payment Link before going live."
+                );
+                alert("Checkout is not configured yet. Please check back soon!");
+                return;
+              }
+              window.open(STRIPE_PAYMENT_LINK, "_blank", "noopener,noreferrer");
+            }}
           >
             Checkout
           </button>
