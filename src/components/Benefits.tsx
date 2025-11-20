@@ -52,16 +52,11 @@ export const Benefits = () => {
         <div className="space-y-6">
           <div className="relative overflow-hidden rounded-[36px] border border-gold/20 shadow-2xl shadow-black/60">
             <img
-              src="/mesh-detail.jpg"
+              src="/vinoveil-mesh-gold-halo.png"
               alt="Close up of the VinoVeil mesh and gold halo"
               className="h-full w-full object-cover"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <div className="absolute bottom-6 left-6">
-              <p className="text-xs uppercase tracking-[0.4em] text-parchment/60">Hand finished</p>
-              <p className="font-serif text-2xl text-parchment">Tactile metallic trim</p>
-            </div>
           </div>
         </div>
       </section>
