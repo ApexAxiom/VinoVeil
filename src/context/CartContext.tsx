@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, useReducer } from "react";
+import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 
 export type Product = {
   id: string;
@@ -18,6 +18,27 @@ export type CartItem = {
 type CartState = {
   items: CartItem[];
 };
+
+const CART_STORAGE_KEY = "vinoveil_cart_v1";
+
+function loadInitialCart(): CartState {
+  const defaultState: CartState = { items: [] };
+
+  if (typeof window === "undefined") {
+    return defaultState;
+  }
+
+  try {
+    const stored = window.localStorage.getItem(CART_STORAGE_KEY);
+    if (!stored) return defaultState;
+    const parsed = JSON.parse(stored) as CartState;
+    if (!parsed?.items) return defaultState;
+    return { items: parsed.items };
+  } catch (error) {
+    console.error("Failed to load cart from storage", error);
+    return defaultState;
+  }
+}
 
 type CartAction =
   | { type: "ADD"; product: Product; quantity: number }
@@ -79,7 +100,18 @@ function cartReducer(state: CartState, action: CartAction): CartState {
 }
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
-  const [state, dispatch] = useReducer(cartReducer, { items: [] });
+  const [state, dispatch] = useReducer(cartReducer, undefined, loadInitialCart);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(
+        CART_STORAGE_KEY,
+        JSON.stringify({ items: state.items })
+      );
+    } catch (error) {
+      console.error("Failed to persist cart", error);
+    }
+  }, [state.items]);
 
   const value = useMemo(() => {
     const cartCount = state.items.reduce((sum, item) => sum + item.quantity, 0);

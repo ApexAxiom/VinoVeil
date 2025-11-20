@@ -8,7 +8,12 @@ export const EmailCapture = () => {
     event.preventDefault();
     setStatus("success");
     setEmail("");
-    // TODO: Wire this up to your email provider (e.g. Klaviyo, ConvertKit, or AWS Pinpoint).
+    // eslint-disable-next-line no-console
+    console.log("VinoVeil email capture (demo only, not persisted)", {
+      email,
+      timestamp: new Date().toISOString()
+    });
+    // TODO: Integrate with your email platform (Klaviyo, ConvertKit, or AWS Pinpoint).
   };
 
   return (

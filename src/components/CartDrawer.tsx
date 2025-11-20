@@ -5,11 +5,12 @@ import { useCart } from "../context/CartContext";
 type CartDrawerProps = {
   open: boolean;
   onClose: () => void;
+  onBeginCheckout: () => void;
 };
 
 const focusSelectors = 'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
-export const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
+export const CartDrawer = ({ open, onClose, onBeginCheckout }: CartDrawerProps) => {
   const { items, cartTotal, updateItem, removeItem, clearCart } = useCart();
   const drawerRef = useRef<HTMLDivElement>(null);
 
@@ -158,22 +159,25 @@ export const CartDrawer = ({ open, onClose }: CartDrawerProps) => {
                 <span>Estimated total</span>
                 <span>${cartTotal.toFixed(2)}</span>
               </div>
-              <p className="text-xs uppercase tracking-[0.3em] text-parchment/50">Secure checkout via Stripe</p>
-              <a
-                href={CHECKOUT_URL}
+              <p className="text-xs uppercase tracking-[0.3em] text-parchment/50">
+                {CHECKOUT_URL.includes("<<<FILL_CHECKOUT_URL>>>")
+                  ? "Checkout preview · Secure Stripe checkout coming soon"
+                  : "Secure checkout via Stripe"}
+              </p>
+              <button
+                type="button"
                 className="button-primary block w-full text-center disabled:cursor-not-allowed disabled:opacity-60"
-                onClick={(event) => {
+                onClick={() => {
                   if (CHECKOUT_URL.includes("<<<FILL_CHECKOUT_URL>>>")) {
-                    event.preventDefault();
-                    // eslint-disable-next-line no-alert
-                    alert("Checkout URL not yet configured. Add your Stripe or shop link in src/config/store.ts.");
+                    onBeginCheckout();
                   } else {
                     clearCart();
+                    window.location.href = CHECKOUT_URL;
                   }
                 }}
               >
                 Checkout securely
-              </a>
+              </button>
               <button className="button-secondary w-full" onClick={handleShop}>
                 Continue shopping
               </button>
