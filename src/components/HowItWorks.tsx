@@ -1,17 +1,17 @@
 const steps = [
   {
-    title: "Place VinoVeil over your glass",
-    description: "The fine mesh settles gently on any stemmed glass.",
+    title: "Set the veil",
+    description: "Place VinoVeil over your glass. The gold-weighted halo centers itself gently on the rim.",
     icon: "🪄"
   },
   {
-    title: "Sip and set it back on top",
-    description: "Lightweight enough to lift with one hand, steady enough to stay put.",
+    title: "Sip and rest",
+    description: "Lift with two fingers, sip, and rest the cover back on top. No napkins, no juggling.",
     icon: "🍷"
   },
   {
-    title: "Enjoy the evening",
-    description: "No more fishing bugs out or worrying about falling leaves.",
+    title: "Let the wine breathe",
+    description: "Aroma flows freely while gnats, bees, and patio debris stay on the outside of the mesh.",
     icon: "🌙"
   }
 ];
@@ -21,9 +21,9 @@ export const HowItWorks = () => {
     <section id="how" className="section-container space-y-12">
       <div className="flex flex-col items-center text-center">
         <p className="text-xs uppercase tracking-[0.5em] text-gold/70">Simple ritual</p>
-        <h2 className="font-serif text-3xl text-parchment sm:text-4xl">How VinoVeil works</h2>
+        <h2 className="font-serif text-3xl text-parchment sm:text-4xl">Three quiet moves, one pristine pour.</h2>
         <p className="mt-3 max-w-2xl text-parchment/70">
-          A three-step ritual designed by sommeliers to protect delicate pours without interrupting conversation.
+          Designed with sommeliers and outdoor hosts, VinoVeil protects each glass without interrupting conversation.
         </p>
       </div>
       <div className="grid gap-6 lg:grid-cols-3">
@@ -38,8 +38,8 @@ export const HowItWorks = () => {
           </div>
         ))}
       </div>
-      <div className="rounded-[30px] border border-gold/40 bg-gradient-to-r from-wine/40 to-night/70 p-8 text-center text-parchment shadow-glow">
-        Perfect for patios, pools, vineyards, yachts, and any alfresco soirée.
+      <div className="glass-card rounded-[30px] border border-gold/40 bg-gradient-to-r from-wine/40 to-night/80 p-8 text-center text-parchment shadow-glow">
+        Perfect for patios, vineyards, yachts, rooftop terraces, and every al fresco toast.
       </div>
     </section>
   );

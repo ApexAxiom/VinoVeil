@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:wght@500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -10,10 +10,11 @@
 
 body {
   font-family: "Inter", sans-serif;
-  background-color: #0b0705;
-  background-image: radial-gradient(circle at 20% 20%, rgba(212, 175, 55, 0.08), transparent 45%),
-    radial-gradient(circle at 80% 0%, rgba(111, 29, 40, 0.35), transparent 55%),
-    linear-gradient(180deg, rgba(9, 5, 4, 0.95), #050302 60%);
+  background-color: #050403;
+  background-image:
+    radial-gradient(1200px at 18% 12%, rgba(201, 166, 107, 0.12), transparent 55%),
+    radial-gradient(900px at 78% 22%, rgba(58, 12, 16, 0.4), transparent 60%),
+    linear-gradient(180deg, rgba(5, 4, 3, 0.94), #050403 65%);
   color: #f5e8d3;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
@@ -23,35 +24,53 @@ a {
   color: inherit;
 }
 
+::selection {
+  background-color: rgba(201, 166, 107, 0.9);
+  color: #050403;
+}
+
 .section-container {
-  @apply mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8;
+  @apply mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-10;
 }
 
 .button-primary {
-  @apply inline-flex items-center justify-center rounded-full border border-transparent bg-gold px-6 py-3 text-base font-semibold text-night transition hover:shadow-glow;
+  @apply inline-flex items-center justify-center rounded-full border border-transparent px-6 py-3 text-base font-semibold text-night transition;
+  background-image: linear-gradient(120deg, #c9a66b, #8b6e4f);
+  box-shadow: 0 0 40px rgba(201, 166, 107, 0.35);
+}
+
+.button-primary:hover {
+  transform: translateY(1px);
+  box-shadow: 0 0 48px rgba(201, 166, 107, 0.5);
 }
 
 .button-secondary {
-  @apply inline-flex items-center justify-center rounded-full border border-gold/70 px-6 py-3 text-base font-semibold text-gold transition hover:bg-gold/10;
+  @apply inline-flex items-center justify-center rounded-full border border-gold/70 px-6 py-3 text-base font-semibold text-gold transition;
+  background: linear-gradient(120deg, rgba(139, 110, 79, 0.12), rgba(201, 166, 107, 0.04));
+}
+
+.button-secondary:hover {
+  @apply border-gold text-gold;
+  transform: translateY(1px);
 }
 
 .input-base {
-  @apply w-full rounded-full border border-gold/40 bg-cocoa px-4 py-3 text-sm text-parchment placeholder:text-parchment/50 focus:border-gold focus:outline-none;
+  @apply w-full rounded-full border border-gold/40 bg-cocoa/80 px-4 py-3 text-sm text-parchment placeholder:text-parchment/50 focus:border-gold focus:outline-none;
 }
 
 .glass-card {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
-  background: linear-gradient(145deg, rgba(20, 15, 12, 0.85), rgba(10, 8, 7, 0.75));
-  border: 1px solid rgba(245, 232, 211, 0.12);
+  background: linear-gradient(160deg, rgba(43, 27, 14, 0.9), rgba(5, 4, 3, 0.85));
+  border: 1px solid rgba(245, 232, 211, 0.14);
+  backdrop-filter: blur(24px);
 }
 
 .gold-divider {
-  background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.65), transparent);
+  background: linear-gradient(90deg, transparent, rgba(201, 166, 107, 0.75), transparent);
   height: 1px;
   width: 100%;
 }
 
-::selection {
-  background-color: rgba(212, 175, 55, 0.85);
-  color: #0b0705;
+.pill-tag {
+  @apply inline-flex items-center gap-2 rounded-full border border-amber/50 bg-amber/10 px-3 py-1 text-[0.65rem] uppercase tracking-[0.32em] text-amber/80;
 }
