@@ -39,11 +39,11 @@ export const HowItWorks = () => {
         ))}
       </div>
       <div className="grid gap-6 lg:grid-cols-2 lg:items-center">
-        <div className="glass-card relative overflow-hidden rounded-[30px] border border-gold/30 aspect-[3/4] sm:aspect-[4/5]">
+        <div className="glass-card relative flex items-center justify-center overflow-hidden rounded-[30px] border border-gold/30 bg-night/40 px-4 py-6 sm:px-6 sm:py-8 aspect-[3/4] sm:aspect-[4/5]">
           <img
             src="/vinoveil-lifestyle-2.png"
             alt="VinoVeil resting on a wine glass during an outdoor gathering"
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
             onError={(e) => {
               // Fallback to hero image if product image doesn't exist
               const target = e.target as HTMLImageElement;

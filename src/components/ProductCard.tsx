@@ -17,11 +17,11 @@ export const ProductCard = ({ product, onAdd }: ProductCardProps) => {
   return (
     <div className="glass-card flex h-full flex-col rounded-[30px] overflow-hidden text-parchment">
       {product.image && (
-        <div className="relative w-full overflow-hidden aspect-[4/5] sm:aspect-[3/4]">
+        <div className="relative w-full overflow-hidden aspect-[4/5] sm:aspect-[3/4] bg-night/40 px-4 py-6 sm:px-6 sm:py-8 flex items-center justify-center">
           <img
             src={product.image}
             alt={product.name}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-contain"
             onError={(e) => {
               // Fallback to hero image if product image doesn't exist
               const target = e.target as HTMLImageElement;
@@ -49,6 +49,7 @@ export const ProductCard = ({ product, onAdd }: ProductCardProps) => {
               <p className="text-xs uppercase tracking-[0.3em] text-parchment/50">/ set</p>
             </div>
           </div>
+        </div>
         <ul className="space-y-2 text-sm text-parchment/80">
           {bullets.map((detail) => (
             <li key={detail} className="flex items-start gap-2">
@@ -57,42 +58,41 @@ export const ProductCard = ({ product, onAdd }: ProductCardProps) => {
             </li>
           ))}
         </ul>
-      </div>
-      <div className="gold-divider my-6" />
-      <div className="mt-auto space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-parchment/70">Quantity</span>
-          <div className="flex items-center gap-2 rounded-full border border-gold/30 bg-night/40 px-2 py-1">
-            <button
-              type="button"
-              aria-label="Decrease quantity"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-amber/10 text-gold transition hover:bg-amber/20"
-              onClick={() => changeQuantity(-1)}
-            >
-              –
-            </button>
-            <span className="w-8 text-center text-sm font-semibold">{quantity}</span>
-            <button
-              type="button"
-              aria-label="Increase quantity"
-              className="flex h-8 w-8 items-center justify-center rounded-full bg-amber/10 text-gold transition hover:bg-amber/20"
-              onClick={() => changeQuantity(1)}
-            >
-              +
-            </button>
+        <div className="gold-divider my-6" />
+        <div className="mt-auto space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-parchment/70">Quantity</span>
+            <div className="flex items-center gap-2 rounded-full border border-gold/30 bg-night/40 px-2 py-1">
+              <button
+                type="button"
+                aria-label="Decrease quantity"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-amber/10 text-gold transition hover:bg-amber/20"
+                onClick={() => changeQuantity(-1)}
+              >
+                –
+              </button>
+              <span className="w-8 text-center text-sm font-semibold">{quantity}</span>
+              <button
+                type="button"
+                aria-label="Increase quantity"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-amber/10 text-gold transition hover:bg-amber/20"
+                onClick={() => changeQuantity(1)}
+              >
+                +
+              </button>
+            </div>
           </div>
+          <button
+            className="button-primary w-full"
+            onClick={() => {
+              onAdd(product, quantity);
+              setQuantity(1);
+            }}
+          >
+            Add to cart
+          </button>
+          <p className="text-center text-[0.75rem] uppercase tracking-[0.25em] text-parchment/55">Ready to ship in 3 business days</p>
         </div>
-        <button
-          className="button-primary w-full"
-          onClick={() => {
-            onAdd(product, quantity);
-            setQuantity(1);
-          }}
-        >
-          Add to cart
-        </button>
-        <p className="text-center text-[0.75rem] uppercase tracking-[0.25em] text-parchment/55">Ready to ship in 3 business days</p>
-      </div>
       </div>
     </div>
   );
