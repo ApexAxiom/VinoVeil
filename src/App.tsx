@@ -9,6 +9,7 @@ import { FAQ } from "./components/FAQ";
 import { EmailCapture } from "./components/EmailCapture";
 import { Footer } from "./components/Footer";
 import { CartDrawer } from "./components/CartDrawer";
+import { CheckoutPreview } from "./components/CheckoutPreview";
 
 const modalCopy: Record<string, string> = {
   Contact:
@@ -21,6 +22,7 @@ const modalCopy: Record<string, string> = {
 
 export default function App() {
   const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [activeModal, setActiveModal] = useState<null | { title: string; body: string }>(null);
 
   return (
@@ -47,7 +49,15 @@ export default function App() {
           }}
         />
       </div>
-      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+      <CartDrawer
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+        onBeginCheckout={() => {
+          setCartOpen(false);
+          setCheckoutOpen(true);
+        }}
+      />
+      <CheckoutPreview open={checkoutOpen} onClose={() => setCheckoutOpen(false)} />
       {activeModal && (
         <>
           <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" onClick={() => setActiveModal(null)} />
