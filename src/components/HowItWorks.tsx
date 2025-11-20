@@ -39,10 +39,10 @@ export const HowItWorks = () => {
         ))}
       </div>
       <div className="grid gap-6 lg:grid-cols-2 lg:items-center">
-        <div className="glass-card relative overflow-hidden rounded-[30px] border border-gold/30">
+        <div className="glass-card relative overflow-hidden rounded-[30px] border border-gold/30 aspect-[3/4] sm:aspect-[4/5]">
           <img
-            src="/vinoveil-product-3.jpg"
-            alt="VinoVeil product in use on a wine glass"
+            src="/vinoveil-lifestyle-2.png"
+            alt="VinoVeil resting on a wine glass during an outdoor gathering"
             className="h-full w-full object-cover"
             onError={(e) => {
               // Fallback to hero image if product image doesn't exist

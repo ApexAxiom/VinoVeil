@@ -47,10 +47,10 @@ export const Hero: React.FC<HeroProps> = ({ onLearnMore }) => {
         <div className="relative">
           <div className="absolute -inset-4 rounded-[40px] border border-gold/30 opacity-80" aria-hidden="true" />
           <div className="glass-card relative overflow-hidden rounded-[32px] bg-gradient-to-b from-black/40 to-black/80">
-            <figure className="relative h-full w-full">
+            <figure className="relative h-full w-full aspect-[3/4] sm:aspect-[4/5]">
               <img
-                src="/vinoveil-product-1.jpg"
-                alt="A glass of wine covered with the gold VinoVeil mesh"
+                src="/vinoveil-lifestyle-1.png"
+                alt="A glass of wine covered with the gold VinoVeil mesh on an outdoor table"
                 className="h-full w-full object-cover"
                 onError={(e) => {
                   // Fallback to original image if new one doesn't exist
