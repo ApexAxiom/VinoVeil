@@ -17,7 +17,7 @@ export const ProductCard = ({ product, onAdd }: ProductCardProps) => {
   return (
     <div className="glass-card flex h-full flex-col rounded-[30px] overflow-hidden text-parchment">
       {product.image && (
-        <div className="relative h-48 w-full overflow-hidden sm:h-56">
+        <div className="relative w-full overflow-hidden aspect-[4/5] sm:aspect-[3/4]">
           <img
             src={product.image}
             alt={product.name}

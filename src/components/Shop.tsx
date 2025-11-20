@@ -8,7 +8,7 @@ const products: Product[] = [
     description: "For couples and sunset tastings.",
     price: 24,
     details: ["Hand-finished mesh and halo", "Fits most stems and coupes", "Includes soft storage pouch"],
-    image: "/vinoveil-product-2.jpg"
+    image: "/vinoveil-lifestyle-1.png"
   },
   {
     id: "eight-pack",
@@ -17,7 +17,7 @@ const products: Product[] = [
     price: 42,
     details: ["Most popular among hosts", "Taste-neutral stainless mesh", "Stacks neatly between pours"],
     badge: "Most popular",
-    image: "/vinoveil-product-1.jpg"
+    image: "/vinoveil-lifestyle-2.png"
   },
   {
     id: "twelve-pack",
@@ -26,7 +26,7 @@ const products: Product[] = [
     price: 58,
     details: ["Covers the full table", "Reusable, rinse and dry", "Arrives boxed with care instructions"],
     badge: "Event ready",
-    image: "/vinoveil-product-3.jpg"
+    image: "/vinoveil-lifestyle-3.png"
   }
 ];
 
