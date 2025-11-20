@@ -11,10 +11,12 @@ import { Footer } from "./components/Footer";
 import { CartDrawer } from "./components/CartDrawer";
 
 const modalCopy: Record<string, string> = {
-  Contact: "Reach us anytime at hello@vinoveil.com. We typically reply within one business day.",
+  Contact:
+    "Reach us at hello@vinoveil.com. We typically reply within one business day with sizing, care, or order support.",
   "Privacy Policy":
-    "We respect your privacy. Your details stay with us and are only used to share updates about VinoVeil.",
-  Terms: "All purchases are subject to our standard terms of sale, including a 30-day satisfaction promise."
+    "We only use your email for VinoVeil product updates and limited releases. Your information is never sold or shared.",
+  Terms:
+    "All purchases include a 30-day satisfaction promise. Returns and exchanges are handled with care—email us to start the process."
 };
 
 export default function App() {
@@ -30,7 +32,7 @@ export default function App() {
       </div>
       <div className="relative z-10">
         <Header onOpenCart={() => setCartOpen(true)} />
-        <main className="space-y-24 pb-24 pt-6">
+        <main className="space-y-28 pb-24 pt-6">
           <Hero onLearnMore={() => document.getElementById("how")?.scrollIntoView({ behavior: "smooth" })} />
           <HowItWorks />
           <Benefits />
