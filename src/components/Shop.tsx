@@ -7,7 +7,8 @@ const products: Product[] = [
     name: "VinoVeil 4 Set",
     description: "For couples and sunset tastings.",
     price: 24,
-    details: ["Hand-finished mesh and halo", "Fits most stems and coupes", "Includes soft storage pouch"]
+    details: ["Hand-finished mesh and halo", "Fits most stems and coupes", "Includes soft storage pouch"],
+    image: "/vinoveil-product-2.jpg"
   },
   {
     id: "eight-pack",
@@ -15,7 +16,8 @@ const products: Product[] = [
     description: "For dinner parties and long weekends.",
     price: 42,
     details: ["Most popular among hosts", "Taste-neutral stainless mesh", "Stacks neatly between pours"],
-    badge: "Most popular"
+    badge: "Most popular",
+    image: "/vinoveil-product-1.jpg"
   },
   {
     id: "twelve-pack",
@@ -23,7 +25,8 @@ const products: Product[] = [
     description: "For weddings, tastings, and outdoor events.",
     price: 58,
     details: ["Covers the full table", "Reusable, rinse and dry", "Arrives boxed with care instructions"],
-    badge: "Event ready"
+    badge: "Event ready",
+    image: "/vinoveil-product-3.jpg"
   }
 ];
 

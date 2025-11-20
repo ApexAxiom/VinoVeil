@@ -38,8 +38,25 @@ export const HowItWorks = () => {
           </div>
         ))}
       </div>
-      <div className="glass-card rounded-[30px] border border-gold/40 bg-gradient-to-r from-wine/40 to-night/80 p-8 text-center text-parchment shadow-glow">
-        Perfect for patios, vineyards, yachts, rooftop terraces, and every al fresco toast.
+      <div className="grid gap-6 lg:grid-cols-2 lg:items-center">
+        <div className="glass-card relative overflow-hidden rounded-[30px] border border-gold/30">
+          <img
+            src="/vinoveil-product-3.jpg"
+            alt="VinoVeil product in use on a wine glass"
+            className="h-full w-full object-cover"
+            onError={(e) => {
+              // Fallback to hero image if product image doesn't exist
+              const target = e.target as HTMLImageElement;
+              if (target.src !== window.location.origin + "/hero-vinoveil.jpg") {
+                target.src = "/hero-vinoveil.jpg";
+              }
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-night/70 via-transparent to-transparent" />
+        </div>
+        <div className="glass-card rounded-[30px] border border-gold/40 bg-gradient-to-r from-wine/40 to-night/80 p-8 text-center text-parchment shadow-glow">
+          Perfect for patios, vineyards, yachts, rooftop terraces, and every al fresco toast.
+        </div>
       </div>
     </section>
   );

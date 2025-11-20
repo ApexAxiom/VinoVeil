@@ -15,19 +15,40 @@ export const ProductCard = ({ product, onAdd }: ProductCardProps) => {
   };
 
   return (
-    <div className="glass-card flex h-full flex-col rounded-[30px] p-6 text-parchment">
-      <div className="space-y-5">
-        {product.badge && <span className="pill-tag">{product.badge}</span>}
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <h3 className="font-serif text-2xl text-parchment">{product.name}</h3>
-            <p className="mt-2 text-parchment/70">{product.description}</p>
-          </div>
-          <div className="text-right">
-            <p className="text-3xl font-semibold text-gold">${product.price.toFixed(0)}</p>
-            <p className="text-xs uppercase tracking-[0.3em] text-parchment/50">/ set</p>
-          </div>
+    <div className="glass-card flex h-full flex-col rounded-[30px] overflow-hidden text-parchment">
+      {product.image && (
+        <div className="relative h-48 w-full overflow-hidden sm:h-56">
+          <img
+            src={product.image}
+            alt={product.name}
+            className="h-full w-full object-cover"
+            onError={(e) => {
+              // Fallback to hero image if product image doesn't exist
+              const target = e.target as HTMLImageElement;
+              if (target.src !== window.location.origin + "/hero-vinoveil.jpg") {
+                target.src = "/hero-vinoveil.jpg";
+              }
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-night/60 via-transparent to-transparent" />
+          {product.badge && (
+            <span className="absolute top-4 right-4 pill-tag">{product.badge}</span>
+          )}
         </div>
+      )}
+      <div className="flex h-full flex-col p-6">
+        <div className="space-y-5">
+          {!product.image && product.badge && <span className="pill-tag">{product.badge}</span>}
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <h3 className="font-serif text-2xl text-parchment">{product.name}</h3>
+              <p className="mt-2 text-parchment/70">{product.description}</p>
+            </div>
+            <div className="text-right">
+              <p className="text-3xl font-semibold text-gold">${product.price.toFixed(0)}</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-parchment/50">/ set</p>
+            </div>
+          </div>
         <ul className="space-y-2 text-sm text-parchment/80">
           {bullets.map((detail) => (
             <li key={detail} className="flex items-start gap-2">
@@ -71,6 +92,7 @@ export const ProductCard = ({ product, onAdd }: ProductCardProps) => {
           Add to cart
         </button>
         <p className="text-center text-[0.75rem] uppercase tracking-[0.25em] text-parchment/55">Ready to ship in 3 business days</p>
+      </div>
       </div>
     </div>
   );

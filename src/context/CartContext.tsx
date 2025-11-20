@@ -7,6 +7,7 @@ export type Product = {
   price: number;
   details: string[];
   badge?: string;
+  image?: string;
 };
 
 export type CartItem = {

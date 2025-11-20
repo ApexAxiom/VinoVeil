@@ -49,9 +49,16 @@ export const Hero: React.FC<HeroProps> = ({ onLearnMore }) => {
           <div className="glass-card relative overflow-hidden rounded-[32px] bg-gradient-to-b from-black/40 to-black/80">
             <figure className="relative h-full w-full">
               <img
-                src="/hero-vinoveil.jpg"
+                src="/vinoveil-product-1.jpg"
                 alt="A glass of wine covered with the gold VinoVeil mesh"
                 className="h-full w-full object-cover"
+                onError={(e) => {
+                  // Fallback to original image if new one doesn't exist
+                  const target = e.target as HTMLImageElement;
+                  if (target.src !== window.location.origin + "/hero-vinoveil.jpg") {
+                    target.src = "/hero-vinoveil.jpg";
+                  }
+                }}
               />
               <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-night/70 via-transparent to-transparent" />
               <figcaption className="sr-only">VinoVeil protecting a glass of red wine with a gold halo.</figcaption>
