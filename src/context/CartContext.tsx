@@ -1,17 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useReducer } from "react";
 
-export type Product = {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  details: string[];
-  badge?: string;
-  image?: string;
-};
-
 export type CartItem = {
-  product: Product;
+  variantId: string;
   quantity: number;
 };
 
@@ -19,7 +9,7 @@ type CartState = {
   items: CartItem[];
 };
 
-const CART_STORAGE_KEY = "vinoveil_cart_v1";
+const CART_STORAGE_KEY = "vinoveil_cart_v2";
 
 function loadInitialCart(): CartState {
   const defaultState: CartState = { items: [] };
@@ -41,57 +31,56 @@ function loadInitialCart(): CartState {
 }
 
 type CartAction =
-  | { type: "ADD"; product: Product; quantity: number }
-  | { type: "UPDATE"; productId: string; quantity: number }
-  | { type: "REMOVE"; productId: string }
+  | { type: "ADD"; variantId: string; quantity: number }
+  | { type: "UPDATE"; variantId: string; quantity: number }
+  | { type: "REMOVE"; variantId: string }
   | { type: "CLEAR" };
 
-const CartContext = createContext<{
+interface CartContextValue {
   items: CartItem[];
-  addItem: (product: Product, quantity: number) => void;
-  updateItem: (productId: string, quantity: number) => void;
-  removeItem: (productId: string) => void;
+  addItem: (variantId: string, quantity: number) => void;
+  updateItem: (variantId: string, quantity: number) => void;
+  removeItem: (variantId: string) => void;
   clearCart: () => void;
-  cartCount: number;
-  cartTotal: number;
-}>({
+  itemCount: number;
+}
+
+const CartContext = createContext<CartContextValue>({
   items: [],
   addItem: () => undefined,
   updateItem: () => undefined,
   removeItem: () => undefined,
   clearCart: () => undefined,
-  cartCount: 0,
-  cartTotal: 0
+  itemCount: 0
 });
 
-function cartReducer(state: CartState, action: CartAction): CartState {
+/** Reducer used for cart state updates. */
+export function cartReducer(state: CartState, action: CartAction): CartState {
   switch (action.type) {
     case "ADD": {
-      const existing = state.items.find((item) => item.product.id === action.product.id);
+      const existing = state.items.find((item) => item.variantId === action.variantId);
       if (existing) {
         return {
           items: state.items.map((item) =>
-            item.product.id === action.product.id
+            item.variantId === action.variantId
               ? { ...item, quantity: item.quantity + action.quantity }
               : item
           )
         };
       }
-      return { items: [...state.items, { product: action.product, quantity: action.quantity }] };
+      return { items: [...state.items, { variantId: action.variantId, quantity: action.quantity }] };
     }
     case "UPDATE": {
       return {
         items: state.items
           .map((item) =>
-            item.product.id === action.productId
-              ? { ...item, quantity: action.quantity }
-              : item
+            item.variantId === action.variantId ? { ...item, quantity: action.quantity } : item
           )
           .filter((item) => item.quantity > 0)
       };
     }
     case "REMOVE":
-      return { items: state.items.filter((item) => item.product.id !== action.productId) };
+      return { items: state.items.filter((item) => item.variantId !== action.variantId) };
     case "CLEAR":
       return { items: [] };
     default:
@@ -99,37 +88,35 @@ function cartReducer(state: CartState, action: CartAction): CartState {
   }
 }
 
+/** Cart provider for localStorage-backed cart state. */
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [state, dispatch] = useReducer(cartReducer, undefined, loadInitialCart);
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(
-        CART_STORAGE_KEY,
-        JSON.stringify({ items: state.items })
-      );
+      window.localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items: state.items }));
     } catch (error) {
       console.error("Failed to persist cart", error);
     }
   }, [state.items]);
 
-  const value = useMemo(() => {
-    const cartCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
-    const cartTotal = state.items.reduce((sum, item) => sum + item.quantity * item.product.price, 0);
+  const value = useMemo<CartContextValue>(() => {
+    const itemCount = state.items.reduce((sum, item) => sum + item.quantity, 0);
 
     return {
       items: state.items,
-      addItem: (product: Product, quantity: number) => dispatch({ type: "ADD", product, quantity }),
-      updateItem: (productId: string, quantity: number) =>
-        dispatch({ type: "UPDATE", productId, quantity }),
-      removeItem: (productId: string) => dispatch({ type: "REMOVE", productId }),
+      addItem: (variantId: string, quantity: number) =>
+        dispatch({ type: "ADD", variantId, quantity }),
+      updateItem: (variantId: string, quantity: number) =>
+        dispatch({ type: "UPDATE", variantId, quantity }),
+      removeItem: (variantId: string) => dispatch({ type: "REMOVE", variantId }),
       clearCart: () => dispatch({ type: "CLEAR" }),
-      cartCount,
-      cartTotal
+      itemCount
     };
   }, [state]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
+/** Hook to use cart context. */
 export const useCart = () => useContext(CartContext);
