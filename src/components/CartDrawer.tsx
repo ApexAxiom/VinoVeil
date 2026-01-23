@@ -1,6 +1,8 @@
 import { useEffect, useRef } from "react";
 import { CHECKOUT_URL } from "../config/store";
 import { useCart } from "../context/CartContext";
+import { useProducts } from "../hooks/useProducts";
+import { calculateTotals } from "../lib/cartTotals";
 
 type CartDrawerProps = {
   open: boolean;
@@ -11,8 +13,11 @@ type CartDrawerProps = {
 const focusSelectors = 'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
 export const CartDrawer = ({ open, onClose, onBeginCheckout }: CartDrawerProps) => {
-  const { items, cartTotal, updateItem, removeItem, clearCart } = useCart();
+  const { items, updateItem, removeItem, clearCart } = useCart();
+  const { products, variants } = useProducts();
   const drawerRef = useRef<HTMLDivElement>(null);
+  const { subtotalCents } = calculateTotals(items, variants, 0, 0);
+  const subtotal = subtotalCents / 100;
 
   useEffect(() => {
     if (!open) return;
@@ -89,59 +94,69 @@ export const CartDrawer = ({ open, onClose, onBeginCheckout }: CartDrawerProps) 
                 </button>
               </div>
             ) : (
-              items.map((item) => (
-                <div
-                  key={item.product.id}
-                  className="rounded-3xl border border-gold/20 bg-night/40 p-4 shadow-inner shadow-black/30"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex items-start gap-3">
-                      <div className="h-14 w-14 overflow-hidden rounded-2xl border border-gold/25 bg-night/70">
-                        <img
-                          src="/hero-vinoveil.jpg"
-                          alt="VinoVeil mesh cover"
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
+              items.map((item) => {
+                const variant = variants.find((entry) => entry.id === item.variantId);
+                const product = products.find((entry) => entry.id === variant?.productId);
+                const productName = product?.name ?? "VinoVeil Glass Cover";
+                const variantTitle = variant?.title ?? "Bundle";
+                const unitPrice = variant ? variant.priceCents / 100 : 0;
+
+                return (
+                  <div
+                    key={item.variantId}
+                    className="rounded-3xl border border-gold/20 bg-night/40 p-4 shadow-inner shadow-black/30"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex items-start gap-3">
+                        <div className="h-14 w-14 overflow-hidden rounded-2xl border border-gold/25 bg-night/70">
+                          <img
+                            src={product?.primaryImage ?? "/hero-vinoveil.jpg"}
+                            alt={productName}
+                            className="h-full w-full object-cover"
+                            loading="lazy"
+                          />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-parchment">{productName}</p>
+                          <p className="text-sm text-parchment/60">
+                            {variantTitle} · ${unitPrice.toFixed(2)} each
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-parchment">{item.product.name}</p>
-                        <p className="text-sm text-parchment/60">${item.product.price.toFixed(2)} each</p>
-                      </div>
-                    </div>
-                    <button
-                      className="text-sm text-gold transition hover:text-parchment"
-                      onClick={() => removeItem(item.product.id)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                  <div className="mt-4 flex items-center justify-between">
-                    <div className="flex items-center gap-2 rounded-full border border-gold/30 bg-night/60 px-2 py-1">
                       <button
-                        type="button"
-                        aria-label={`Decrease quantity of ${item.product.name}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-amber/10 text-gold transition hover:bg-amber/20"
-                        onClick={() => updateItem(item.product.id, Math.max(1, item.quantity - 1))}
+                        className="text-sm text-gold transition hover:text-parchment"
+                        onClick={() => removeItem(item.variantId)}
                       >
-                        –
-                      </button>
-                      <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
-                      <button
-                        type="button"
-                        aria-label={`Increase quantity of ${item.product.name}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-amber/10 text-gold transition hover:bg-amber/20"
-                        onClick={() => updateItem(item.product.id, item.quantity + 1)}
-                      >
-                        +
+                        Remove
                       </button>
                     </div>
-                    <p className="text-lg font-semibold text-parchment">
-                      ${(item.quantity * item.product.price).toFixed(2)}
-                    </p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <div className="flex items-center gap-2 rounded-full border border-gold/30 bg-night/60 px-2 py-1">
+                        <button
+                          type="button"
+                          aria-label={`Decrease quantity of ${productName}`}
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-amber/10 text-gold transition hover:bg-amber/20"
+                          onClick={() => updateItem(item.variantId, Math.max(1, item.quantity - 1))}
+                        >
+                          –
+                        </button>
+                        <span className="w-8 text-center text-sm font-semibold">{item.quantity}</span>
+                        <button
+                          type="button"
+                          aria-label={`Increase quantity of ${productName}`}
+                          className="flex h-8 w-8 items-center justify-center rounded-full bg-amber/10 text-gold transition hover:bg-amber/20"
+                          onClick={() => updateItem(item.variantId, item.quantity + 1)}
+                        >
+                          +
+                        </button>
+                      </div>
+                      <p className="text-lg font-semibold text-parchment">
+                        ${(item.quantity * unitPrice).toFixed(2)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
@@ -149,7 +164,7 @@ export const CartDrawer = ({ open, onClose, onBeginCheckout }: CartDrawerProps) 
             <div className="space-y-3 text-parchment">
               <div className="flex justify-between text-sm">
                 <span>Subtotal</span>
-                <span>${cartTotal.toFixed(2)}</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
               <div className="flex justify-between text-sm text-parchment/70">
                 <span>Shipping & tax</span>
@@ -157,7 +172,7 @@ export const CartDrawer = ({ open, onClose, onBeginCheckout }: CartDrawerProps) 
               </div>
               <div className="flex justify-between text-lg font-semibold text-gold">
                 <span>Estimated total</span>
-                <span>${cartTotal.toFixed(2)}</span>
+                <span>${subtotal.toFixed(2)}</span>
               </div>
               <p className="text-xs uppercase tracking-[0.3em] text-parchment/50">
                 {CHECKOUT_URL.includes("<<<FILL_CHECKOUT_URL>>>")

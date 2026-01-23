@@ -20,24 +20,23 @@ export interface CheckoutSession {
  */
 export async function createDraftOrder(payload: DraftOrderPayload): Promise<Order> {
   const { items, shippingAddress, email, products, variants } = payload;
-  const orderItems: OrderItem[] = items
-    .map((item) => {
-      const variant = variants.find((entry) => entry.id === item.variantId);
-      if (!variant) return null;
-      const product = products.find((entry) => entry.id === variant.productId);
-      if (!product) return null;
-      return {
-        variantId: variant.id,
-        sku: variant.sku,
-        name: product.name,
-        variantTitle: variant.title,
-        qty: item.quantity,
-        unitPriceCents: variant.priceCents,
-        lineTotalCents: variant.priceCents * item.quantity,
-        image: product.primaryImage
-      } satisfies OrderItem;
-    })
-    .filter((item): item is OrderItem => Boolean(item));
+  const orderItems = items.reduce<OrderItem[]>((acc, item) => {
+    const variant = variants.find((entry) => entry.id === item.variantId);
+    if (!variant) return acc;
+    const product = products.find((entry) => entry.id === variant.productId);
+    if (!product) return acc;
+    acc.push({
+      variantId: variant.id,
+      sku: variant.sku,
+      name: product.name,
+      variantTitle: variant.title,
+      qty: item.quantity,
+      unitPriceCents: variant.priceCents,
+      lineTotalCents: variant.priceCents * item.quantity,
+      image: product.primaryImage
+    });
+    return acc;
+  }, []);
 
   const totals = calculateTotals(items, variants);
 

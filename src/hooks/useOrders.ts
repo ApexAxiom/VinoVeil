@@ -16,9 +16,16 @@ export function useOrders() {
     let active = true;
     async function load() {
       try {
-        const orders = await dataClient.models.Order.list(userDataOptions);
+        const models = dataClient.models as unknown as {
+          Order: {
+            list: (
+              options: typeof userDataOptions
+            ) => Promise<{ data?: Order[] | null }> | { data?: Order[] | null };
+          };
+        };
+        const orders = await Promise.resolve(models.Order.list(userDataOptions));
         if (!active) return;
-        setState({ orders: (orders.data as Order[]) ?? [], loading: false });
+        setState({ orders: orders.data ?? [], loading: false });
       } catch (error) {
         if (!active) return;
         setState({ orders: [], loading: false, error: (error as Error).message });

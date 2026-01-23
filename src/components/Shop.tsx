@@ -1,9 +1,10 @@
-import { Product, useCart } from "../context/CartContext";
+import { useCart } from "../context/CartContext";
 import { ProductCard } from "./ProductCard";
 
-const products: Product[] = [
+const products = [
   {
     id: "four-pack",
+    variantId: "vino-veil-4",
     name: "VinoVeil 4 Set",
     description: "For couples and sunset tastings.",
     price: 24,
@@ -12,6 +13,7 @@ const products: Product[] = [
   },
   {
     id: "eight-pack",
+    variantId: "vino-veil-8",
     name: "VinoVeil 8 Set",
     description: "For dinner parties and long weekends.",
     price: 42,
@@ -21,6 +23,7 @@ const products: Product[] = [
   },
   {
     id: "twelve-pack",
+    variantId: "vino-veil-12",
     name: "VinoVeil 12 Set (Entertainer)",
     description: "For weddings, tastings, and outdoor events.",
     price: 58,

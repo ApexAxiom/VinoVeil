@@ -1,9 +1,19 @@
 import { useState } from "react";
-import { Product } from "../context/CartContext";
 
 type ProductCardProps = {
-  product: Product;
-  onAdd: (product: Product, quantity: number) => void;
+  product: FeaturedProduct;
+  onAdd: (variantId: string, quantity: number) => void;
+};
+
+type FeaturedProduct = {
+  id: string;
+  variantId: string;
+  name: string;
+  description: string;
+  price: number;
+  details: string[];
+  image?: string;
+  badge?: string;
 };
 
 export const ProductCard = ({ product, onAdd }: ProductCardProps) => {
@@ -85,7 +95,7 @@ export const ProductCard = ({ product, onAdd }: ProductCardProps) => {
           <button
             className="button-primary w-full"
             onClick={() => {
-              onAdd(product, quantity);
+              onAdd(product.variantId, quantity);
               setQuantity(1);
             }}
           >

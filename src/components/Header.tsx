@@ -43,7 +43,7 @@ const LogoMark = () => (
 );
 
 export const Header = ({ onOpenCart }: HeaderProps) => {
-  const { cartCount } = useCart();
+  const { itemCount } = useCart();
   const [isOpen, setIsOpen] = useState(false);
 
   const handleNavClick = (href: string) => {
@@ -102,9 +102,9 @@ export const Header = ({ onOpenCart }: HeaderProps) => {
                   fill="none"
                 />
               </Icon>
-              {cartCount > 0 && (
+              {itemCount > 0 && (
                 <span className="absolute -right-1 -top-1 flex h-5 min-w-[1.25rem] items-center justify-center rounded-full bg-gold px-1 text-[0.65rem] font-semibold text-night">
-                  {cartCount}
+                  {itemCount}
                 </span>
               )}
             </button>

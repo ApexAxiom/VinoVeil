@@ -22,12 +22,24 @@ export function useProducts() {
     let active = true;
     async function load() {
       try {
-        const products = await dataClient.models.Product.list(publicDataOptions);
-        const variants = await dataClient.models.ProductVariant.list(publicDataOptions);
+        const models = dataClient.models as unknown as {
+          Product: {
+            list: (
+              options: typeof publicDataOptions
+            ) => Promise<{ data?: Product[] | null }> | { data?: Product[] | null };
+          };
+          ProductVariant: {
+            list: (
+              options: typeof publicDataOptions
+            ) => Promise<{ data?: ProductVariant[] | null }> | { data?: ProductVariant[] | null };
+          };
+        };
+        const products = await Promise.resolve(models.Product.list(publicDataOptions));
+        const variants = await Promise.resolve(models.ProductVariant.list(publicDataOptions));
         if (!active) return;
         setState({
-          products: (products.data as Product[]) ?? seededProducts,
-          variants: (variants.data as ProductVariant[]) ?? seededVariants,
+          products: products.data ?? seededProducts,
+          variants: variants.data ?? seededVariants,
           loading: false
         });
       } catch (error) {
