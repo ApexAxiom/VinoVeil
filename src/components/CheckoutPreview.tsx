@@ -1,5 +1,7 @@
 import { FormEvent, useEffect, useRef, useState, type MouseEvent } from "react";
 import { useCart } from "../context/CartContext";
+import { useProducts } from "../hooks/useProducts";
+import { calculateTotals } from "../lib/cartTotals";
 
 const focusSelectors = 'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
@@ -35,13 +37,15 @@ const initialFormState: FormState = {
 };
 
 export const CheckoutPreview = ({ open, onClose }: CheckoutPreviewProps) => {
-  const { items, cartTotal, clearCart } = useCart();
+  const { items, clearCart } = useCart();
+  const { products, variants } = useProducts();
   const [form, setForm] = useState<FormState>(initialFormState);
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "success">("idle");
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  const subtotal = cartTotal;
+  const { subtotalCents } = calculateTotals(items, variants, 0, 0);
+  const subtotal = subtotalCents / 100;
   const estimatedTotal = subtotal;
 
   useEffect(() => {
@@ -114,13 +118,18 @@ export const CheckoutPreview = ({ open, onClose }: CheckoutPreviewProps) => {
         subtotal,
         estimatedTotal
       },
-      items: items.map((item) => ({
-        id: item.product.id,
-        name: item.product.name,
-        quantity: item.quantity,
-        unitPrice: item.product.price,
-        lineTotal: item.quantity * item.product.price
-      })),
+      items: items.map((item) => {
+        const variant = variants.find((entry) => entry.id === item.variantId);
+        const product = products.find((entry) => entry.id === variant?.productId);
+        const unitPrice = variant ? variant.priceCents / 100 : 0;
+        return {
+          id: item.variantId,
+          name: product?.name ?? "VinoVeil Glass Cover",
+          quantity: item.quantity,
+          unitPrice,
+          lineTotal: item.quantity * unitPrice
+        };
+      }),
       customer: {
         email: form.email,
         fullName: form.fullName,
@@ -200,17 +209,26 @@ export const CheckoutPreview = ({ open, onClose }: CheckoutPreviewProps) => {
                     <p className="text-parchment/70">Your cart is empty.</p>
                   ) : (
                     <div className="space-y-4">
-                      {items.map((item) => (
-                        <div key={item.product.id} className="flex items-start justify-between gap-3">
-                          <div>
-                            <p className="font-semibold text-parchment">{item.product.name}</p>
-                            <p className="text-sm text-parchment/60">Qty {item.quantity}</p>
+                      {items.map((item) => {
+                        const variant = variants.find((entry) => entry.id === item.variantId);
+                        const product = products.find((entry) => entry.id === variant?.productId);
+                        const unitPrice = variant ? variant.priceCents / 100 : 0;
+                        const productName = product?.name ?? "VinoVeil Glass Cover";
+                        const variantTitle = variant?.title ? ` · ${variant.title}` : "";
+
+                        return (
+                          <div key={item.variantId} className="flex items-start justify-between gap-3">
+                            <div>
+                              <p className="font-semibold text-parchment">
+                                {productName}
+                                <span className="text-parchment/60">{variantTitle}</span>
+                              </p>
+                              <p className="text-sm text-parchment/60">Qty {item.quantity}</p>
+                            </div>
+                            <p className="text-parchment">${(item.quantity * unitPrice).toFixed(2)}</p>
                           </div>
-                          <p className="text-parchment">
-                            ${(item.quantity * item.product.price).toFixed(2)}
-                          </p>
-                        </div>
-                      ))}
+                        );
+                      })}
                       <div className="border-t border-gold/20 pt-4 text-parchment">
                         <div className="flex justify-between text-sm">
                           <span>Subtotal</span>
