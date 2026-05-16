@@ -31,6 +31,10 @@ After deploying Amplify Data, seed the initial catalog (uses repo images):
 npx tsx scripts/seed.ts
 ```
 
+## Shopify storefront (frontend)
+
+Purchase and waitlist buttons read from `src/config/commerce.ts`. Copy `.env.example` to `.env` and set the `VITE_*` variables documented there, or define the same keys in Amplify Hosting **Environment variables** for production builds.
+
 ## Stripe integration stub
 
 Stripe is intentionally stubbed. Update these files when ready:
