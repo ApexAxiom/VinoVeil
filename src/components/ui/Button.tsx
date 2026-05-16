@@ -4,15 +4,6 @@ import { cn } from "../../lib/cn";
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "destructive";
 export type ButtonSize = "sm" | "md" | "lg";
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  /** Visual style variant. */
-  variant?: ButtonVariant;
-  /** Button size. */
-  size?: ButtonSize;
-  /** Loading state disables and shows shimmer. */
-  loading?: boolean;
-}
-
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
     "bg-gradient-to-r from-gold to-amber text-night shadow-glow hover:shadow-[0_0_50px_rgba(201,166,107,0.55)]",
@@ -28,7 +19,38 @@ const sizeStyles: Record<ButtonSize, string> = {
   lg: "px-7 py-3.5 text-lg"
 };
 
-/** Primary button component for VinoVeil UI. */
+const focusRing =
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/70 focus-visible:ring-offset-2 focus-visible:ring-offset-night";
+
+export function buttonSurfaceClassName(options?: {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  className?: string;
+  disabled?: boolean;
+  loading?: boolean;
+}) {
+  const { variant = "primary", size = "md", className, disabled, loading } = options ?? {};
+  return cn(
+    "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition duration-300 ease-luxe",
+    focusRing,
+    variantStyles[variant],
+    sizeStyles[size],
+    (disabled || loading) && "cursor-not-allowed opacity-70",
+    className
+  );
+}
+
+export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+  loading?: boolean;
+  /** When set, renders a styled anchor (for external checkout links). */
+  href?: string;
+  target?: string;
+  rel?: string;
+}
+
+/** Primary button (or anchor when `href` is set) for VinoVeil UI. */
 export function Button({
   variant = "primary",
   size = "md",
@@ -36,20 +58,32 @@ export function Button({
   className,
   disabled,
   children,
-  ...props
+  href,
+  type = "button",
+  target,
+  rel,
+  ...rest
 }: ButtonProps) {
+  const surface = buttonSurfaceClassName({ variant, size, className, disabled, loading });
+
+  if (href) {
+    return (
+      <a
+        href={href}
+        className={surface}
+        aria-disabled={disabled || loading}
+        target={target}
+        rel={rel}
+        {...(rest as Record<string, unknown>)}
+      >
+        {loading ? <span className="h-4 w-4 animate-pulse rounded-full bg-white/60" /> : null}
+        {children}
+      </a>
+    );
+  }
+
   return (
-    <button
-      className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-full font-semibold transition duration-300 ease-luxe focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/70",
-        variantStyles[variant],
-        sizeStyles[size],
-        (disabled || loading) && "cursor-not-allowed opacity-70",
-        className
-      )}
-      disabled={disabled || loading}
-      {...props}
-    >
+    <button type={type} className={surface} disabled={disabled || loading} {...rest}>
       {loading ? <span className="h-4 w-4 animate-pulse rounded-full bg-white/60" /> : null}
       {children}
     </button>

@@ -1,7 +1,7 @@
 import { useSearchParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Card } from "../components/ui/Card";
-import { Button } from "../components/ui/Button";
+import { buttonSurfaceClassName } from "../components/ui/Button";
 
 export function PaymentPlaceholder() {
   const [params] = useSearchParams();
@@ -23,11 +23,14 @@ export function PaymentPlaceholder() {
           </p>
         ) : null}
         <div className="flex flex-wrap gap-3">
-          <Link to="/account/orders">
-            <Button variant="secondary">View orders</Button>
+          <Link
+            to="/account/orders"
+            className={buttonSurfaceClassName({ variant: "secondary", size: "md" })}
+          >
+            View orders
           </Link>
-          <Link to="/shop">
-            <Button>Continue shopping</Button>
+          <Link to="/shop" className={buttonSurfaceClassName({ variant: "primary", size: "md" })}>
+            Continue shopping
           </Link>
         </div>
       </Card>

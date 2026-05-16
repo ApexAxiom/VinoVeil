@@ -2,6 +2,7 @@ import { createBrowserRouter } from "react-router-dom";
 import { RootLayout } from "../components/layout/RootLayout";
 import { RequireAdmin, RequireAuth } from "./guards";
 import { Home } from "../pages/Home";
+import { VinoVeilProduct } from "../pages/VinoVeilProduct";
 import { Shop } from "../pages/Shop";
 import { ProductDetail } from "../pages/ProductDetail";
 import { Cart } from "../pages/Cart";
@@ -28,6 +29,7 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <Home /> },
+      { path: "vino-veil", element: <VinoVeilProduct /> },
       { path: "shop", element: <Shop /> },
       { path: "product/:slug", element: <ProductDetail /> },
       { path: "cart", element: <Cart /> },

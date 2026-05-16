@@ -1,5 +1,6 @@
 import { Helmet } from "react-helmet-async";
 import { Card } from "../components/ui/Card";
+import { absoluteUrl } from "../lib/seo";
 
 const faqItems = [
   {
@@ -17,10 +18,17 @@ const faqItems = [
 ];
 
 export function FAQ() {
+  const canonical = absoluteUrl("/faq");
+
   return (
     <div className="section-container space-y-8">
       <Helmet>
         <title>FAQ | VinoVeil</title>
+        <meta
+          name="description"
+          content="Answers about fit, cleaning, and using VinoVeil mesh wine glass covers outdoors."
+        />
+        <link rel="canonical" href={canonical} />
       </Helmet>
       <h1 className="font-serif text-4xl">Frequently asked</h1>
       <div className="space-y-4">

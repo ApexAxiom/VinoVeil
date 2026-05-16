@@ -20,8 +20,11 @@ export function Footer() {
           </div>
           <div className="space-y-2 text-sm text-parchment/70">
             <p className="text-xs uppercase tracking-[0.2em] text-gold/70">Explore</p>
+            <Link className="block transition hover:text-parchment" to="/vino-veil">
+              Buy VinoVeil
+            </Link>
             <Link className="block transition hover:text-parchment" to="/shop">
-              Shop
+              Catalog
             </Link>
             <Link className="block transition hover:text-parchment" to="/faq">
               FAQ
@@ -40,7 +43,7 @@ export function Footer() {
           </div>
         </div>
         <p className="mt-10 text-xs uppercase tracking-[0.3em] text-parchment/50">
-          © 2024 VinoVeil. Crafted for slow pours and golden evenings.
+          © 2026 VinoVeil. Crafted for slow pours and golden evenings.
         </p>
       </div>
     </footer>

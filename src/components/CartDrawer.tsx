@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { CHECKOUT_URL } from "../config/store";
+import { useNavigate } from "react-router-dom";
+import { isShopifyPurchaseConfigured, resolveShopifyPrimaryPurchaseUrl } from "../config/commerce";
 import { useCart } from "../context/CartContext";
 import { useProducts } from "../hooks/useProducts";
 import { calculateTotals } from "../lib/cartTotals";
@@ -13,11 +14,14 @@ type CartDrawerProps = {
 const focusSelectors = 'a[href], button, textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
 export const CartDrawer = ({ open, onClose, onBeginCheckout }: CartDrawerProps) => {
-  const { items, updateItem, removeItem, clearCart } = useCart();
+  const navigate = useNavigate();
+  const { items, updateItem, removeItem } = useCart();
   const { products, variants } = useProducts();
   const drawerRef = useRef<HTMLDivElement>(null);
   const { subtotalCents } = calculateTotals(items, variants, 0, 0);
   const subtotal = subtotalCents / 100;
+  const shopifyUrl = resolveShopifyPrimaryPurchaseUrl();
+  const useShopifyCheckout = isShopifyPurchaseConfigured() && Boolean(shopifyUrl);
 
   useEffect(() => {
     if (!open) return;
@@ -53,8 +57,8 @@ export const CartDrawer = ({ open, onClose, onBeginCheckout }: CartDrawerProps) 
 
   if (!open) return null;
 
-  const handleShop = () => {
-    document.getElementById("shop")?.scrollIntoView({ behavior: "smooth" });
+  const goShop = () => {
+    navigate("/vino-veil");
     onClose();
   };
 
@@ -72,7 +76,7 @@ export const CartDrawer = ({ open, onClose, onBeginCheckout }: CartDrawerProps) 
           <div className="flex items-center justify-between border-b border-gold/15 px-6 py-5">
             <div>
               <p className="text-xs uppercase tracking-[0.35em] text-gold/70">Your VinoVeil cart</p>
-              <h2 className="font-serif text-2xl text-parchment">Boutique checkout</h2>
+              <h2 className="font-serif text-2xl text-parchment">Cart preview</h2>
             </div>
             <button
               onClick={onClose}
@@ -85,12 +89,12 @@ export const CartDrawer = ({ open, onClose, onBeginCheckout }: CartDrawerProps) 
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
             {items.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center gap-4 text-center text-parchment/70">
-                <p>Your cart is feeling airy. Add a set to keep every glass covered.</p>
-                <button className="button-secondary" onClick={handleShop}>
-                  Shop the sets
+                <p>Your cart is empty. When Shopify checkout is enabled, you can also purchase from the product page.</p>
+                <button type="button" className="button-secondary" onClick={goShop}>
+                  View VinoVeil
                 </button>
               </div>
             ) : (
@@ -175,25 +179,24 @@ export const CartDrawer = ({ open, onClose, onBeginCheckout }: CartDrawerProps) 
                 <span>${subtotal.toFixed(2)}</span>
               </div>
               <p className="text-xs uppercase tracking-[0.3em] text-parchment/50">
-                {CHECKOUT_URL.includes("<<<FILL_CHECKOUT_URL>>>")
-                  ? "Checkout preview · Secure Stripe checkout coming soon"
-                  : "Secure checkout via Stripe"}
+                {useShopifyCheckout
+                  ? "Shopify checkout opens in a new tab when you continue."
+                  : "This cart is a preview. Final purchase will move to Shopify once configured."}
               </p>
               <button
                 type="button"
                 className="button-primary block w-full text-center disabled:cursor-not-allowed disabled:opacity-60"
                 onClick={() => {
-                  if (CHECKOUT_URL.includes("<<<FILL_CHECKOUT_URL>>>")) {
-                    onBeginCheckout();
+                  if (useShopifyCheckout && shopifyUrl) {
+                    window.open(shopifyUrl, "_blank", "noopener,noreferrer");
                   } else {
-                    clearCart();
-                    window.location.href = CHECKOUT_URL;
+                    onBeginCheckout();
                   }
                 }}
               >
-                Checkout securely
+                {useShopifyCheckout ? "Continue to Shopify" : "Continue (preview checkout)"}
               </button>
-              <button className="button-secondary w-full" onClick={handleShop}>
+              <button type="button" className="button-secondary w-full" onClick={goShop}>
                 Continue shopping
               </button>
             </div>
