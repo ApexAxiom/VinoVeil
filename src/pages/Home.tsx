@@ -209,8 +209,8 @@ export function Home() {
         <div>
           <h2 className="font-serif text-3xl text-ivory sm:text-4xl">Ready for your next pour?</h2>
           <p className="mt-4 max-w-lg text-sm leading-relaxed text-parchment/75">
-            See the full product story, specifications, and FAQ—or open Shopify checkout when your
-            store links are configured.
+            See the full product story, specifications, and FAQ—then use the buttons below to shop or
+            join the waitlist for launch updates.
           </p>
         </div>
         <div className="flex flex-wrap gap-4">
