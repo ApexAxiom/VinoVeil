@@ -4,11 +4,12 @@ import { CommerceCta } from "../components/commerce/CommerceCta";
 import { Badge } from "../components/ui/Badge";
 import { Divider } from "../components/ui/Divider";
 import { buttonSurfaceClassName } from "../components/ui/Button";
+import { frontPageImages } from "../config/frontPageImages";
 import { absoluteUrl } from "../lib/seo";
 
 export function Home() {
   const canonical = absoluteUrl("/");
-  const ogImage = absoluteUrl("/hero-vinoveil.jpg");
+  const ogImage = absoluteUrl(frontPageImages.hero.src);
 
   return (
     <div className="space-y-20 sm:space-y-28">
@@ -27,7 +28,7 @@ export function Home() {
         <meta property="og:type" content="website" />
         <meta property="og:url" content={canonical} />
         <meta property="og:image" content={ogImage} />
-        <meta property="og:image:alt" content="VinoVeil mesh wine glass cover in a warm setting" />
+        <meta property="og:image:alt" content={frontPageImages.hero.alt} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="VinoVeil | Elegant Wine Glass Covers" />
         <meta
@@ -64,8 +65,8 @@ export function Home() {
         <div className="relative">
           <div className="pointer-events-none absolute -inset-3 rounded-[36px] bg-gradient-to-br from-gold/12 via-transparent to-wine/25 blur-2xl" />
           <img
-            src="/hero-vinoveil.jpg"
-            alt="VinoVeil mesh wine glass cover on stemware in a moody, warm setting"
+            src={frontPageImages.hero.src}
+            alt={frontPageImages.hero.alt}
             className="relative z-[1] aspect-[4/5] w-full rounded-[32px] object-cover shadow-card sm:aspect-auto sm:min-h-[420px] lg:min-h-[480px]"
           />
         </div>
@@ -88,8 +89,8 @@ export function Home() {
             Breathable mesh and a gentle raised outer rim keep the silhouette refined while you sip.
           </p>
           <img
-            src="/mesh-detail.jpg"
-            alt="Close-up of VinoVeil mesh texture and rim"
+            src={frontPageImages.solution.src}
+            alt={frontPageImages.solution.alt}
             className="rounded-3xl"
             loading="lazy"
           />
@@ -101,8 +102,8 @@ export function Home() {
             are setting the table for guests.
           </p>
           <img
-            src="/vinoveil-mesh-gold-halo.png"
-            alt="VinoVeil outer rim and mesh detail on a wine glass"
+            src={frontPageImages.crafted.src}
+            alt={frontPageImages.crafted.alt}
             className="rounded-3xl"
             loading="lazy"
           />
@@ -146,27 +147,27 @@ export function Home() {
       <section className="section-container space-y-10">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="font-serif text-3xl text-ivory sm:text-4xl">On the table</h2>
-        <div className="hidden flex-1 sm:ml-10 sm:block">
-          <Divider />
-        </div>
+          <div className="hidden flex-1 sm:ml-10 sm:block">
+            <Divider />
+          </div>
         </div>
         <div className="grid gap-4 md:grid-cols-[1.1fr_0.9fr]">
           <img
-            src="/vinoveil-lifestyle-1.png"
-            alt="VinoVeil on wine glasses at an outdoor evening gathering"
+            src={frontPageImages.gallery[0].src}
+            alt={frontPageImages.gallery[0].alt}
             className="h-full min-h-[280px] w-full rounded-[32px] object-cover"
             loading="lazy"
           />
           <div className="grid gap-4">
             <img
-              src="/vinoveil-lifestyle-2.png"
-              alt="VinoVeil styled on a dressed outdoor table"
+              src={frontPageImages.gallery[1].src}
+              alt={frontPageImages.gallery[1].alt}
               className="rounded-[32px] object-cover"
               loading="lazy"
             />
             <img
-              src="/vinoveil-lifestyle-3.png"
-              alt="VinoVeil in a relaxed backyard wine setting"
+              src={frontPageImages.gallery[2].src}
+              alt={frontPageImages.gallery[2].alt}
               className="rounded-[32px] object-cover"
               loading="lazy"
             />
