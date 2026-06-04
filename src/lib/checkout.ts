@@ -1,7 +1,7 @@
 import type { CartLineItem, Product, ProductVariant } from "../types/catalog";
 import type { Order, OrderItem } from "../types/amplify";
 import { calculateTotals } from "./cartTotals";
-import { dataClient, userDataOptions } from "./dataClient";
+import { getDataClient, userDataOptions } from "./dataClient";
 
 export interface DraftOrderPayload {
   items: CartLineItem[];
@@ -55,6 +55,7 @@ export async function createDraftOrder(payload: DraftOrderPayload): Promise<Orde
   };
 
   try {
+    const dataClient = getDataClient();
     const mutations = dataClient.mutations as unknown as {
       createDraftOrder: (input: Record<string, unknown>, options: typeof userDataOptions) =>
         | Promise<{ data: Order | null }>
@@ -81,6 +82,7 @@ export async function createDraftOrder(payload: DraftOrderPayload): Promise<Orde
  */
 export async function createCheckoutSession(orderId: string): Promise<CheckoutSession> {
   try {
+    const dataClient = getDataClient();
     const mutations = dataClient.mutations as unknown as {
       createCheckoutSession: (input: Record<string, unknown>, options: typeof userDataOptions) =>
         | Promise<{ data: CheckoutSession | null }>

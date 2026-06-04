@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { dataClient, userDataOptions } from "../lib/dataClient";
+import { getDataClient, userDataOptions } from "../lib/dataClient";
 import type { Order } from "../types/amplify";
 
 interface OrdersState {
@@ -16,6 +16,7 @@ export function useOrders() {
     let active = true;
     async function load() {
       try {
+        const dataClient = getDataClient();
         const models = dataClient.models as unknown as {
           Order: {
             list: (

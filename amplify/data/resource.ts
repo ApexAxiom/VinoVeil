@@ -1,6 +1,7 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { createDraftOrder } from "../functions/createDraftOrder/resource";
 import { createCheckoutSession } from "../functions/createCheckoutSession/resource";
+import { sendContactMessage } from "../functions/sendContactMessage/resource";
 
 const schema = a.schema({
   Product: a
@@ -59,6 +60,19 @@ const schema = a.schema({
       message: a.string().required()
     })
     .authorization((allow) => [allow.publicApiKey().to(["create"]), allow.group("ADMINS")]),
+  ContactSendResult: a.customType({
+    ok: a.boolean().required()
+  }),
+  sendContactMessage: a
+    .mutation()
+    .arguments({
+      name: a.string().required(),
+      email: a.string().required(),
+      message: a.string().required()
+    })
+    .returns(a.ref("ContactSendResult"))
+    .authorization((allow) => [allow.publicApiKey()])
+    .handler(a.handler.function(sendContactMessage)),
   createDraftOrder: a
     .mutation()
     .arguments({
@@ -93,4 +107,4 @@ export const data = defineData({
   }
 });
 
-export type Schema = ClientSchema<typeof data.schema>;
+export type Schema = ClientSchema<typeof schema>;

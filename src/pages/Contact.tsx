@@ -9,7 +9,7 @@ import { Input } from "../components/ui/Input";
 import { Textarea } from "../components/ui/Textarea";
 import { WAITLIST_EMAIL } from "../config/commerce";
 import { useToast } from "../context/ToastContext";
-import { dataClient, publicDataOptions } from "../lib/dataClient";
+import { sendContactMessage } from "../lib/contact";
 import { absoluteUrl } from "../lib/seo";
 
 const schema = z.object({
@@ -19,6 +19,9 @@ const schema = z.object({
 });
 
 type FormValues = z.infer<typeof schema>;
+
+const contactFailureMessage =
+  "We couldn't send your message just now. Please try again in a minute.";
 
 export function Contact() {
   const { notify } = useToast();
@@ -30,16 +33,21 @@ export function Contact() {
   const onSubmit = handleSubmit(async (values) => {
     try {
       setError(null);
-      const mutations = dataClient.mutations as unknown as {
-        createContactMessage: (input: Record<string, unknown>, options: typeof publicDataOptions) =>
-          | Promise<{ data: unknown }>
-          | { data: unknown };
-      };
-      await mutations.createContactMessage(values, publicDataOptions);
-      notify({ title: "Message received", description: "We will reply within one business day." });
+      await sendContactMessage(values);
+      notify({
+        title: "Message sent",
+        description: "Thanks for reaching out. We'll be in touch soon.",
+        tone: "success"
+      });
       reset();
     } catch (err) {
-      setError((err as Error).message);
+      console.error("Contact form submission failed", err);
+      setError(contactFailureMessage);
+      notify({
+        title: "Message not sent",
+        description: contactFailureMessage,
+        tone: "error"
+      });
     }
   });
 
@@ -69,9 +77,8 @@ export function Contact() {
       <div>
         <h1 className="font-serif text-4xl">Contact concierge</h1>
         <p className="mt-3 text-sm leading-relaxed text-parchment/75">
-          Reach us for gifting, table quantities, or care questions. Submissions use the site&apos;s
-          contact backend when it is connected; if something fails, try again later or email directly
-          from your own client.
+          Reach us for gifting, table quantities, or care questions. Send a note and our concierge
+          team will follow up soon.
         </p>
         <form className="mt-8 space-y-4" onSubmit={onSubmit}>
           <Input label="Name" {...register("name")} error={formState.errors.name?.message} />
@@ -81,7 +88,11 @@ export function Contact() {
             {...register("message")}
             error={formState.errors.message?.message}
           />
-          {error ? <p className="text-sm text-red-300">{error}</p> : null}
+          {error ? (
+            <p className="text-sm text-red-300" role="alert">
+              {error}
+            </p>
+          ) : null}
           <Button type="submit" loading={formState.isSubmitting}>
             Send message
           </Button>

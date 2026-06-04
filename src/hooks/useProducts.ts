@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { dataClient, publicDataOptions } from "../lib/dataClient";
+import { getDataClient, publicDataOptions } from "../lib/dataClient";
 import type { Product, ProductVariant } from "../types/catalog";
 import { seededProducts, seededVariants } from "../data/seedProducts";
 
@@ -22,6 +22,7 @@ export function useProducts() {
     let active = true;
     async function load() {
       try {
+        const dataClient = getDataClient();
         const models = dataClient.models as unknown as {
           Product: {
             list: (

@@ -18,7 +18,7 @@ npm run dev
 1. Install the Amplify CLI (if needed) and run the sandbox:
 
    ```bash
-   npx amplify sandbox
+   npx ampx sandbox
    ```
 
 2. Generate `amplify_outputs.json` after deploying. The frontend reads this file in `src/lib/amplify.ts`.
@@ -41,6 +41,19 @@ Stripe is intentionally stubbed. Update these files when ready:
 
 - `amplify/functions/createCheckoutSession/handler.ts` (create Stripe session)
 - `amplify/functions/createDraftOrder/handler.ts` (server-side totals)
+
+## Contact form email
+
+The contact form uses the Amplify Data `sendContactMessage` mutation and the
+`amplify/functions/sendContactMessage` Lambda to send concierge messages through
+Amazon SES. The recipient is backend-only and is not exposed in the browser.
+
+Before production delivery will work:
+
+- Verify the sender email or domain in Amazon SES.
+- Set `CONTACT_FROM_EMAIL` in the Amplify backend/build environment to that verified sender.
+- Optional: set `CONTACT_SES_IDENTITY_ARN` to the verified SES identity ARN to scope the Lambda IAM policy.
+- If the AWS account is still in the SES sandbox, verify the recipient too or request SES production access.
 
 ## Deploying to AWS Amplify Hosting
 
