@@ -13,9 +13,9 @@ import { sendContactMessage } from "../lib/contact";
 import { absoluteUrl } from "../lib/seo";
 
 const schema = z.object({
-  name: z.string().min(2, "Name required"),
-  email: z.string().email("Valid email required"),
-  message: z.string().min(10, "Message required")
+  name: z.string().trim().min(1, "Name required"),
+  email: z.string().trim().email("Valid email required"),
+  message: z.string().trim().min(1, "Message required")
 });
 
 type FormValues = z.infer<typeof schema>;
