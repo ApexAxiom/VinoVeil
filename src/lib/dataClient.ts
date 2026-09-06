@@ -12,7 +12,8 @@ export function getDataClient() {
 }
 
 export const publicDataOptions = {
-  authMode: "apiKey" as const
+  // Both guest and signed-in identity-pool roles have only the public permissions.
+  authMode: "identityPool" as const
 };
 
 export const userDataOptions = {
