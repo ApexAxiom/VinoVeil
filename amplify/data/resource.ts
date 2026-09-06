@@ -3,7 +3,7 @@ import { createDraftOrder } from "../functions/createDraftOrder/resource";
 import { createCheckoutSession } from "../functions/createCheckoutSession/resource";
 import { sendContactMessage } from "../functions/sendContactMessage/resource";
 
-const schema = a.schema({
+export const schema = a.schema({
   Product: a
     .model({
       slug: a.string().required(),
@@ -18,7 +18,11 @@ const schema = a.schema({
       seoDescription: a.string(),
       variants: a.hasMany("ProductVariant", "productId")
     })
-    .authorization((allow) => [allow.publicApiKey().to(["read"]), allow.group("ADMINS")]),
+    .authorization((allow) => [
+      allow.guest().to(["read"]),
+      allow.authenticated("identityPool").to(["read"]),
+      allow.group("ADMINS")
+    ]),
   ProductVariant: a
     .model({
       productId: a.id().required(),
@@ -30,7 +34,11 @@ const schema = a.schema({
       active: a.boolean().required(),
       product: a.belongsTo("Product", "productId")
     })
-    .authorization((allow) => [allow.publicApiKey().to(["read"]), allow.group("ADMINS")]),
+    .authorization((allow) => [
+      allow.guest().to(["read"]),
+      allow.authenticated("identityPool").to(["read"]),
+      allow.group("ADMINS")
+    ]),
   UserProfile: a
     .model({
       owner: a.string().required(),
@@ -59,7 +67,11 @@ const schema = a.schema({
       email: a.string().required(),
       message: a.string().required()
     })
-    .authorization((allow) => [allow.publicApiKey().to(["create"]), allow.group("ADMINS")]),
+    .authorization((allow) => [
+      allow.guest().to(["create"]),
+      allow.authenticated("identityPool").to(["create"]),
+      allow.group("ADMINS")
+    ]),
   ContactSendResult: a.customType({
     ok: a.boolean().required()
   }),
@@ -71,7 +83,7 @@ const schema = a.schema({
       message: a.string().required()
     })
     .returns(a.ref("ContactSendResult"))
-    .authorization((allow) => [allow.publicApiKey()])
+    .authorization((allow) => [allow.guest(), allow.authenticated("identityPool")])
     .handler(a.handler.function(sendContactMessage)),
   createDraftOrder: a
     .mutation()
@@ -100,10 +112,7 @@ const schema = a.schema({
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "userPool",
-    apiKeyAuthorizationMode: {
-      expiresInDays: 30
-    }
+    defaultAuthorizationMode: "userPool"
   }
 });
 

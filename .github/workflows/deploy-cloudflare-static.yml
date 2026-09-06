@@ -39,6 +39,8 @@ jobs:
           const raw = process.env.AMPLIFY_OUTPUTS_JSON || '';
           const outputs = JSON.parse(raw);
           assert.ok(outputs.auth?.user_pool_id && outputs.auth?.user_pool_client_id);
+          assert.ok(outputs.auth?.identity_pool_id, 'Public access requires the existing identity pool');
+          assert.equal(outputs.auth?.unauthenticated_identities_enabled, true, 'Public guest access must be configured');
           assert.equal(new URL(outputs.data?.url || '').protocol, 'https:');
           assert.ok(outputs.data?.model_introspection);
           await writeFile('amplify_outputs.json', raw);
