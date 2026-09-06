@@ -27,7 +27,7 @@ jobs:
       - name: Install existing locked dependencies
         run: |
           npm install --global npm@11.4.2 --no-audit --no-fund
-          npm ci --no-audit --no-fund
+          npm ci --legacy-peer-deps --no-audit --no-fund
           npm test
       - name: Restore current generated public Amplify configuration
         env:
@@ -48,6 +48,7 @@ jobs:
         run: |
           npm run build
           test -s dist/index.html
+          test -s dist/assets/404.html
           test ! -e dist/_redirects
           test ! -e dist/404.html
           test ! -e dist/_worker.js
