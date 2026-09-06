@@ -26,6 +26,7 @@ jobs:
           cache: npm
       - name: Install existing locked dependencies
         run: |
+          npm install --global npm@11.4.2 --no-audit --no-fund
           npm ci --no-audit --no-fund
           npm test
       - name: Restore current generated public Amplify configuration
