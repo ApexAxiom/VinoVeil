@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Helmet } from "react-helmet-async";
@@ -27,6 +27,7 @@ type ShippingForm = z.infer<typeof shippingSchema>;
 
 export function Checkout() {
   const { items, clearCart } = useCart();
+  const [error, setError] = useState<string | null>(null);
   const { products, variants } = useProducts();
   const { register, handleSubmit, formState } = useForm<ShippingForm>({
     resolver: zodResolver(shippingSchema),
@@ -50,16 +51,21 @@ export function Checkout() {
   }
 
   const onSubmit = handleSubmit(async (values) => {
-    const order = await createDraftOrder({
-      items,
-      shippingAddress: values,
-      email: values.email,
-      products,
-      variants
-    });
-    const session = await createCheckoutSession(order.id);
-    clearCart();
-    window.location.href = session.url;
+    try {
+      setError(null);
+      const order = await createDraftOrder({
+        items,
+        shippingAddress: values,
+        email: values.email,
+        products,
+        variants
+      });
+      const session = await createCheckoutSession(order.id);
+      clearCart();
+      window.location.href = session.url;
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Checkout is not available yet.");
+    }
   });
 
   return (
@@ -86,6 +92,7 @@ export function Checkout() {
             <input type="checkbox" className="accent-gold" {...register("saveDefault")} />
             Save as default shipping address
           </label>
+          {error ? <p role="alert" className="text-sm text-red-300">{error}</p> : null}
           <Button type="submit" loading={formState.isSubmitting}>
             Continue to payment
           </Button>

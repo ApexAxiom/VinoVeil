@@ -6,10 +6,7 @@ import { CartProvider } from "./context/CartContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ToastProvider } from "./context/ToastContext";
 import { HelmetProvider } from "react-helmet-async";
-import { configureAmplify } from "./lib/amplify";
 import { router } from "./routes/router";
-
-configureAmplify();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

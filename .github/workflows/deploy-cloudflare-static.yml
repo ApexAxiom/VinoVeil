@@ -29,24 +29,18 @@ jobs:
           npm install --global npm@11.4.2 --no-audit --no-fund
           npm ci --legacy-peer-deps --no-audit --no-fund
           npm test
-      - name: Restore current generated public Amplify configuration
+      - name: Verify the reviewed native backend origin
         env:
-          AMPLIFY_OUTPUTS_JSON: ${{ secrets.AMPLIFY_OUTPUTS_JSON }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
         run: |
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
-          import { writeFile } from 'node:fs/promises';
-          const raw = process.env.AMPLIFY_OUTPUTS_JSON || '';
-          const outputs = JSON.parse(raw);
-          assert.ok(outputs.auth?.user_pool_id && outputs.auth?.user_pool_client_id);
-          assert.ok(outputs.auth?.identity_pool_id, 'Public access requires the existing identity pool');
-          assert.equal(outputs.auth?.unauthenticated_identities_enabled, true, 'Public guest access must be configured');
-          assert.equal(new URL(outputs.data?.url || '').protocol, 'https:');
-          assert.ok(outputs.data?.model_introspection);
-          await writeFile('amplify_outputs.json', raw);
-          console.log('Existing public auth/data configuration restored without an Amplify backend deployment.');
+          assert.equal(process.env.VITE_API_BASE_URL, 'https://api.vinoveil.com');
+          console.log('Reviewed native API origin is configured.');
           NODE
       - name: Verify and build the existing frontend
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
         run: |
           npm run build
           test -s dist/index.html

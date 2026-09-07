@@ -1,0 +1,51 @@
+name: Check native Cloudflare auth and data
+
+on:
+  pull_request:
+    paths:
+      - 'cloudflare/backend/**'
+      - 'src/**'
+      - 'package*.json'
+      - '.github/workflows/check-cloudflare-backend.yml'
+      - '.github/workflows/deploy-cloudflare-static.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      WRANGLER_SEND_METRICS: 'false'
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: cloudflare/backend/package-lock.json
+      - run: npm ci --prefix cloudflare/backend --no-audit --no-fund
+      - run: npm run check --prefix cloudflare/backend
+      - run: npm test --prefix cloudflare/backend
+      - run: npx --no-install wrangler deploy --dry-run
+        working-directory: cloudflare/backend
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci --legacy-peer-deps --no-audit --no-fund
+      - run: npm test
+      - run: npm run build
+        env:
+          VITE_API_BASE_URL: https://api.vinoveil.com

@@ -1,0 +1,8 @@
+{
+  "name": "vinoveil-cloudflare-backend",
+  "private": true,
+  "type": "module",
+  "scripts": { "check": "node --check worker.mjs", "test": "node --test worker.test.mjs" },
+  "dependencies": { "better-auth": "1.7.3" },
+  "devDependencies": { "wrangler": "4.129.0" }
+}
