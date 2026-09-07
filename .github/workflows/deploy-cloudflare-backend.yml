@@ -1,0 +1,64 @@
+name: Deploy native Cloudflare backend
+
+on:
+  workflow_dispatch:
+    inputs:
+      traffic_enabled:
+        description: Serve application requests only after the reviewed source fence and reconciliation
+        type: boolean
+        default: false
+        required: true
+      email_enabled:
+        description: Permit real account and contact emails after sender readiness and cutover review
+        type: boolean
+        default: false
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: vinoveil-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: Production
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      VINO_D1_DATABASE_ID: ${{ vars.VINO_D1_DATABASE_ID }}
+      TRAFFIC_ENABLED: ${{ inputs.traffic_enabled && 'true' || 'false' }}
+      EMAIL_ENABLED: ${{ inputs.email_enabled && 'true' || 'false' }}
+      WRANGLER_SEND_METRICS: 'false'
+    defaults:
+      run:
+        working-directory: cloudflare/backend
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: cloudflare/backend/package-lock.json
+      - name: Verify the exact locked backend source
+        run: |
+          npm ci --no-audit --no-fund
+          npm run check
+          npm test
+      - name: Check real resources and prepare the exact release
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node release.mjs prepare
+      - name: Deploy one reviewed version without schema or data import
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: npx --no-install wrangler deploy --config .wrangler/release.json
+      - name: Verify source, database, pause state and active Worker version
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: node release.mjs verify

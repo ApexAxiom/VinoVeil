@@ -1,21 +1,12 @@
-import { generateClient } from "aws-amplify/data";
-import type { Schema } from "../types/amplify";
+import { apiRequest } from './api';
+import type { Product, ProductVariant } from '../types/catalog';
+import type { Order } from '../types/amplify';
 
-type DataClient = ReturnType<typeof generateClient<Schema>>;
-
-let dataClient: DataClient | null = null;
-
-/** Lazily create the Amplify data client after Amplify.configure has run. */
-export function getDataClient() {
-  dataClient ??= generateClient<Schema>();
-  return dataClient;
-}
-
-export const publicDataOptions = {
-  // Both guest and signed-in identity-pool roles have only the public permissions.
-  authMode: "identityPool" as const
-};
-
-export const userDataOptions = {
-  authMode: "userPool" as const
+// These methods are the existing React consumers' complete data surface.
+export const dataClient = {
+  listProducts: () => apiRequest<{ data: Product[] }>('/api/products'),
+  listVariants: () => apiRequest<{ data: ProductVariant[] }>('/api/variants'),
+  listOrders: () => apiRequest<{ data: Order[] }>('/api/orders'),
+  sendContactMessage: (input: { name: string; email: string; message: string }) =>
+    apiRequest<{ data: { ok: boolean } }>('/api/contact', input),
 };

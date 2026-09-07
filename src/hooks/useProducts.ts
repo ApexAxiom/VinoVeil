@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
-import { getDataClient, publicDataOptions } from "../lib/dataClient";
+import { dataClient } from "../lib/dataClient";
 import type { Product, ProductVariant } from "../types/catalog";
-import { seededProducts, seededVariants } from "../data/seedProducts";
 
 interface ProductState {
   products: Product[];
@@ -10,11 +9,11 @@ interface ProductState {
   error?: string;
 }
 
-/** Load product catalog from Amplify or fallback seed data. */
+/** Load the real catalog; preserve truthful empty and error states. */
 export function useProducts() {
   const [state, setState] = useState<ProductState>({
-    products: seededProducts,
-    variants: seededVariants,
+    products: [],
+    variants: [],
     loading: true
   });
 
@@ -22,25 +21,11 @@ export function useProducts() {
     let active = true;
     async function load() {
       try {
-        const dataClient = getDataClient();
-        const models = dataClient.models as unknown as {
-          Product: {
-            list: (
-              options: typeof publicDataOptions
-            ) => Promise<{ data?: Product[] | null }> | { data?: Product[] | null };
-          };
-          ProductVariant: {
-            list: (
-              options: typeof publicDataOptions
-            ) => Promise<{ data?: ProductVariant[] | null }> | { data?: ProductVariant[] | null };
-          };
-        };
-        const products = await Promise.resolve(models.Product.list(publicDataOptions));
-        const variants = await Promise.resolve(models.ProductVariant.list(publicDataOptions));
+        const [products, variants] = await Promise.all([dataClient.listProducts(), dataClient.listVariants()]);
         if (!active) return;
         setState({
-          products: products.data ?? seededProducts,
-          variants: variants.data ?? seededVariants,
+          products: products.data ?? [],
+          variants: variants.data ?? [],
           loading: false
         });
       } catch (error) {

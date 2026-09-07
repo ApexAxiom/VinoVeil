@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: vinoveil-static-production
+  group: vinoveil-production
   cancel-in-progress: false
 
 jobs:
@@ -29,26 +29,29 @@ jobs:
           npm install --global npm@11.4.2 --no-audit --no-fund
           npm ci --legacy-peer-deps --no-audit --no-fund
           npm test
-      - name: Restore current generated public Amplify configuration
+      - name: Verify the reviewed native backend origin
         env:
-          AMPLIFY_OUTPUTS_JSON: ${{ secrets.AMPLIFY_OUTPUTS_JSON }}
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
         run: |
           node --input-type=module <<'NODE'
           import assert from 'node:assert/strict';
-          import { writeFile } from 'node:fs/promises';
-          const raw = process.env.AMPLIFY_OUTPUTS_JSON || '';
-          const outputs = JSON.parse(raw);
-          assert.ok(outputs.auth?.user_pool_id && outputs.auth?.user_pool_client_id);
-          assert.ok(outputs.auth?.identity_pool_id, 'Public access requires the existing identity pool');
-          assert.equal(outputs.auth?.unauthenticated_identities_enabled, true, 'Public guest access must be configured');
-          assert.equal(new URL(outputs.data?.url || '').protocol, 'https:');
-          assert.ok(outputs.data?.model_introspection);
-          await writeFile('amplify_outputs.json', raw);
-          console.log('Existing public auth/data configuration restored without an Amplify backend deployment.');
+          assert.equal(process.env.VITE_API_BASE_URL, 'https://api.vinoveil.com');
+          const response = await fetch(`${process.env.VITE_API_BASE_URL}/api/health`, { cache: 'no-store' });
+          assert(response.ok, 'Backend is not ready.');
+          const backend = await response.json();
+          assert.equal(backend.releaseSha, process.env.GITHUB_SHA, 'Deploy the backend from this exact main commit first.');
+          assert(backend.trafficEnabled && backend.emailEnabled && backend.writesEnabled && backend.authConfigured, 'Backend is paused or authentication/email is not ready.');
+          console.log('Reviewed native backend matches this exact frontend source.');
           NODE
       - name: Verify and build the existing frontend
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
         run: |
           npm run build
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from 'node:fs';
+          writeFileSync('dist/release.json', JSON.stringify({ sourceSha: process.env.GITHUB_SHA, backendSha: process.env.GITHUB_SHA }));
+          NODE
           test -s dist/index.html
           test -s dist/assets/404.html
           test ! -e dist/_redirects
@@ -67,3 +70,14 @@ jobs:
             --branch main \
             --commit-hash "$GITHUB_SHA" \
             --commit-dirty=true
+      - name: Verify the immutable frontend release receipt
+        run: |
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          const response = await fetch('https://vinoveil.com/release.json', { cache: 'no-store' });
+          assert(response.ok, 'Frontend release receipt is unavailable.');
+          const receipt = await response.json();
+          assert.equal(receipt.sourceSha, process.env.GITHUB_SHA);
+          assert.equal(receipt.backendSha, process.env.GITHUB_SHA);
+          console.log(`Frontend and backend source: ${process.env.GITHUB_SHA}`);
+          NODE

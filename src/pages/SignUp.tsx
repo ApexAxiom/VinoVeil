@@ -22,29 +22,35 @@ const schema = z
 type FormValues = z.infer<typeof schema>;
 
 export function SignUp() {
-  const { signUp, confirmSignUp } = useAuth();
+  const { signUp, confirmSignUp, resendConfirmation } = useAuth();
   const [step, setStep] = useState<"signup" | "confirm">("signup");
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
   const navigate = useNavigate();
 
-  const { register, handleSubmit, formState } = useForm<FormValues>({
+  const { register, handleSubmit, formState, getValues } = useForm<FormValues>({
     resolver: zodResolver(schema)
+  });
+  const confirmationForm = useForm<{ confirmationCode: string }>({
+    resolver: zodResolver(z.object({ confirmationCode: z.string().min(1, "Confirmation code required") }))
   });
 
   const onSubmit = handleSubmit(async (values) => {
     try {
       setError(null);
-      if (step === "signup") {
-        await signUp(values.email, values.password);
-        setEmail(values.email);
-        setStep("confirm");
-        return;
-      }
-      if (values.confirmationCode) {
-        await confirmSignUp(email, values.confirmationCode);
-        navigate("/auth/sign-in");
-      }
+      await signUp(values.email, values.password);
+      setEmail(values.email);
+      setStep("confirm");
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  });
+  const onConfirm = confirmationForm.handleSubmit(async (values) => {
+    try {
+      setError(null);
+      await confirmSignUp(email, values.confirmationCode);
+      navigate("/auth/sign-in");
     } catch (err) {
       setError((err as Error).message);
     }
@@ -56,7 +62,7 @@ export function SignUp() {
         <title>Create Account | VinoVeil</title>
       </Helmet>
       <h1 className="font-serif text-4xl">Create account</h1>
-      <form className="space-y-4" onSubmit={onSubmit}>
+      <form className="space-y-4" onSubmit={step === "signup" ? onSubmit : onConfirm}>
         {step === "signup" ? (
           <>
             <Input label="Email" {...register("email")} error={formState.errors.email?.message} />
@@ -70,15 +76,28 @@ export function SignUp() {
         ) : (
           <Input
             label="Confirmation code"
-            {...register("confirmationCode")}
-            error={formState.errors.confirmationCode?.message}
+            {...confirmationForm.register("confirmationCode")}
+            error={confirmationForm.formState.errors.confirmationCode?.message}
           />
         )}
         {error ? <p className="text-sm text-red-300">{error}</p> : null}
-        <Button type="submit" loading={formState.isSubmitting}>
-          {step === "signup" ? "Send confirmation" : "Confirm sign up"}
+        <Button type="submit" loading={formState.isSubmitting || confirmationForm.formState.isSubmitting}>
+          {step === "signup" ? "Create account" : "Confirm sign up"}
         </Button>
       </form>
+      {step === "confirm" ? <p className="text-sm text-parchment/70">Enter the code from your email. If it hasn’t arrived, resend confirmation.</p> : null}
+      <Button variant="secondary" loading={resending} onClick={async () => {
+        setResending(true);
+        try {
+          setError(null);
+          const target = email || getValues("email");
+          await resendConfirmation(target);
+          setEmail(target);
+          setStep("confirm");
+        } catch (failure) {
+          setError(failure instanceof Error ? failure.message : "Confirmation could not be sent.");
+        } finally { setResending(false); }
+      }}>Resend confirmation</Button>
       <Link to="/auth/sign-in" className="text-sm text-gold">
         Already have an account? Sign in.
       </Link>

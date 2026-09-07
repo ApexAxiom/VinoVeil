@@ -1,6 +1,7 @@
 /// <reference types="vite/client" />
 
 interface ImportMetaEnv {
+  readonly VITE_API_BASE_URL?: string;
   readonly VITE_SHOPIFY_STORE_URL?: string;
   readonly VITE_SHOPIFY_PRODUCT_HANDLE?: string;
   readonly VITE_SHOPIFY_PRODUCT_URL?: string;

@@ -1,70 +1,36 @@
-import { parse, valueFromASTUntyped } from "graphql";
-import { describe, expect, it, vi } from "vitest";
-import { schema } from "../../amplify/data/resource";
-import { publicDataOptions, userDataOptions } from "../lib/dataClient";
-import { sendContactMessage } from "../lib/contact";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+const fetcher = vi.fn();
+beforeEach(() => { vi.resetModules(); vi.stubEnv("VITE_API_BASE_URL", "https://api.vinoveil.com"); vi.stubGlobal("fetch", fetcher); fetcher.mockReset(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.unstubAllEnvs(); });
 
-const contact = vi.hoisted(() => vi.fn());
-vi.mock("aws-amplify/data", () => ({
-  generateClient: () => ({ mutations: { sendContactMessage: contact } })
-}));
-
-// Compile the actual Amplify schema, then inspect the authorization directives
-// consumed by its backend transformer. No AWS resources or records are created.
-const document = parse(schema.transform().schema);
-function rules(typeName: string, fieldName?: string) {
-  const type = document.definitions.find(
-    (entry) => entry.kind === "ObjectTypeDefinition" && entry.name.value === typeName
-  );
-  if (!type || type.kind !== "ObjectTypeDefinition") throw new Error(`Missing ${typeName}`);
-  const subject = fieldName ? type.fields?.find((field) => field.name.value === fieldName) : type;
-  const directive = subject?.directives?.find((entry) => entry.name.value === "auth");
-  const argument = directive?.arguments?.find((entry) => entry.name.value === "rules");
-  if (!argument) throw new Error(`Missing auth for ${typeName}.${fieldName ?? "model"}`);
-  return valueFromASTUntyped(argument.value) as Array<Record<string, unknown>>;
-}
-
-describe("public identity-pool access", () => {
-  it.each(["Product", "ProductVariant"])("allows only catalog reads for guests and signed-in visitors on %s", (name) => {
-    expect(rules(name)).toEqual([
-      { allow: "public", provider: "identityPool", operations: ["read"] },
-      { allow: "private", provider: "identityPool", operations: ["read"] },
-      { allow: "groups", groups: ["ADMINS"] }
-    ]);
+describe("native public and owner-data transport", () => {
+  it("uses credentialed catalog/order reads with truthful empty data", async () => {
+    const { dataClient } = await import("../lib/dataClient");
+    fetcher.mockResolvedValue({ ok: true, json: async () => ({ data: [] }) });
+    expect(await dataClient.listProducts()).toEqual({ data: [] });
+    expect(await dataClient.listOrders()).toEqual({ data: [] });
+    expect(fetcher).toHaveBeenLastCalledWith("https://api.vinoveil.com/api/orders", { method: "GET", credentials: "include" });
   });
-
-  it("keeps contact creation public without exposing contact records", () => {
-    expect(rules("ContactMessage")).toEqual([
-      { allow: "public", provider: "identityPool", operations: ["create"] },
-      { allow: "private", provider: "identityPool", operations: ["create"] },
-      { allow: "groups", groups: ["ADMINS"] }
-    ]);
-    expect(rules("Mutation", "sendContactMessage")).toEqual([
-      { allow: "public", provider: "identityPool" },
-      { allow: "private", provider: "identityPool" }
-    ]);
+  it("reports contact acceptance only after the native service confirms acceptance", async () => {
+    const { sendContactMessage } = await import("../lib/contact");
+    const input = { name: "Offline", email: "unit@example.invalid", message: "Never sent" };
+    fetcher.mockResolvedValueOnce({ ok: true, json: async () => ({ data: { ok: true } }) });
+    await sendContactMessage(input);
+    expect(fetcher.mock.calls[0][0]).toBe("https://api.vinoveil.com/api/contact");
+    expect(fetcher.mock.calls[0][1].credentials).toBe("include");
+    fetcher.mockResolvedValueOnce({ ok: true, json: async () => ({ data: null }) });
+    await expect(sendContactMessage(input)).rejects.toThrow("Contact message was not accepted.");
   });
-
-  it("preserves private owner and checkout access", () => {
-    expect(rules("Order")).toEqual([{ allow: "owner", ownerField: "owner" }, { allow: "groups", groups: ["ADMINS"] }]);
-    expect(rules("UserProfile")).toEqual([
-      { allow: "owner", ownerField: "owner" },
-      { allow: "groups", groups: ["ADMINS"], operations: ["read"] }
-    ]);
-    for (const name of ["createDraftOrder", "createCheckoutSession"]) {
-      expect(rules("Mutation", name)).toEqual([{ allow: "private" }]);
-    }
-    expect(userDataOptions).toEqual({ authMode: "userPool" });
+  it("does not turn an unavailable checkout into a fake local order or payment URL", async () => {
+    const { createDraftOrder, createCheckoutSession } = await import("../lib/checkout");
+    fetcher.mockResolvedValue({ ok: false, json: async () => ({ error: "Checkout is not available yet." }) });
+    await expect(createDraftOrder({ items: [], products: [], variants: [], email: "unit@example.invalid", shippingAddress: {} })).rejects.toThrow("Checkout is not available yet.");
+    await expect(createCheckoutSession("offline-order")).rejects.toThrow("Checkout is not available yet.");
   });
-
-  it("uses the public identity role without an expiring key", async () => {
-    expect(publicDataOptions).toEqual({ authMode: "identityPool" });
-    expect(schema.transform().schema).not.toContain("apiKey");
-    const payload = { name: "Unit test", email: "unit@example.invalid", message: "Never sent to a service" };
-    contact.mockResolvedValueOnce({ data: { ok: true } });
-    await sendContactMessage(payload);
-    expect(contact).toHaveBeenLastCalledWith(payload, { authMode: "identityPool" });
-    contact.mockResolvedValueOnce({ data: null });
-    await expect(sendContactMessage(payload)).rejects.toThrow("Contact message was not accepted.");
+  it("fails without a configured HTTPS backend instead of fetching another store", async () => {
+    vi.stubEnv("VITE_API_BASE_URL", "");
+    const { dataClient } = await import("../lib/dataClient");
+    await expect(dataClient.listProducts()).rejects.toThrow("not configured");
+    expect(fetcher).not.toHaveBeenCalled();
   });
 });
