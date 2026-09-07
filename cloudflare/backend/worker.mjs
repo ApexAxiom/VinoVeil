@@ -45,6 +45,13 @@ async function contactLimit(request, env) {
 async function handle(request, env) {
   const path = new URL(request.url).pathname;
   if (!env.DB) throw problem(503, 'Service is not configured.');
+  const gate = await env.DB.prepare('SELECT writes_enabled FROM migration_control WHERE id=1').first();
+  const writesEnabled = gate?.writes_enabled === 1;
+  if (path === '/api/health' && request.method === 'GET') {
+    return json({ releaseSha: env.RELEASE_SHA ?? null, trafficEnabled: env.TRAFFIC_ENABLED === 'true', emailEnabled: env.EMAIL_ENABLED === 'true', writesEnabled, authConfigured: Boolean(env.AUTH_SECRET?.length >= 32) });
+  }
+  // Session GETs can refresh persistent sessions. A data fence must stop reads too.
+  if (env.TRAFFIC_ENABLED !== 'true' || !writesEnabled) throw problem(503, 'Service is paused for maintenance. Please try again shortly.');
   if (path.startsWith('/api/auth/')) {
     const endpoint = path.slice('/api/auth/'.length);
     if (!authPaths.has(endpoint)) throw problem(404, 'Not found.');

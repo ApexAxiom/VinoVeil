@@ -11,15 +11,16 @@ const emails = [];
 const password = 'Offline-only-password-17!';
 before(async () => {
   platform = await testPlatform();
-  env = { ...platform.env, AUTH_SECRET: 'offline-test-secret-never-used-in-production-0123456789', EMAIL_ENABLED: 'true', EMAIL_FROM: 'noreply@example.invalid', CONTACT_TO_EMAIL: 'owner@example.invalid',
+  env = { ...platform.env, AUTH_SECRET: 'offline-test-secret-never-used-in-production-0123456789', TRAFFIC_ENABLED: 'true', EMAIL_ENABLED: 'true', EMAIL_FROM: 'noreply@example.invalid', CONTACT_TO_EMAIL: 'owner@example.invalid',
     EMAIL: { async send(message) { emails.push(message); return { messageId: 'offline-delivery' }; } } };
-  for (const file of ['0001_auth.sql', '0002_data.sql']) {
+  for (const file of ['0001_auth.sql', '0002_data.sql', '0003_write_fence.sql']) {
     const sql = (await readFile(new URL(`./migrations/${file}`, import.meta.url), 'utf8')).replace(/^--.*$/gm, '');
-    for (const statement of sql.split(';').map(value => value.trim()).filter(Boolean)) await env.DB.prepare(statement).run();
+    for (const statement of sql.split(/\r?\n/).map(value => value.trim()).filter(Boolean)) await env.DB.prepare(statement).run();
   }
 });
 after(async () => { await platform?.dispose(); });
 beforeEach(async () => {
+  await env.DB.prepare('UPDATE migration_control SET writes_enabled=1 WHERE id=1').run();
   for (const table of ['orders', 'user_profiles', 'contact_messages', 'product_variants', 'products', 'session', 'account', 'verification', 'rateLimit', 'contact_rate_limit', 'user']) await env.DB.prepare(`DELETE FROM "${table}"`).run();
   emails.length = 0;
 });
@@ -127,6 +128,19 @@ test('pinned schema is complete, ownership keys enforce referential integrity an
   await assert.rejects(env.DB.prepare("INSERT INTO orders VALUES ('bad','missing','{\"id\":\"bad\"}')").run());
   assert.equal((await call('/api/products', { bindings: { ...env, DB: undefined } })).status, 503);
   assert.equal((await post('/api/contact', { name: 'Offline', email: 'test@example.invalid', message: 'Offline' }, { bindings: { ...env, EMAIL_ENABLED: 'false' } })).status, 503);
+  const paused = { ...env, TRAFFIC_ENABLED: 'false', RELEASE_SHA: '1'.repeat(40) };
+  for (const path of ['/api/products', '/api/me', '/api/auth/get-session']) assert.equal((await call(path, { bindings: paused })).status, 503);
+  assert.equal((await post('/api/auth/sign-up/email', { email: 'paused@example.invalid', password, name: 'Offline paused' }, { bindings: paused })).status, 503);
+  assert.equal((await env.DB.prepare('SELECT count(*) AS n FROM user').first()).n, 0);
+  assert.deepEqual((await call('/api/health', { bindings: paused })).body, { releaseSha: '1'.repeat(40), trafficEnabled: false, emailEnabled: true, writesEnabled: true, authConfigured: true });
+  await env.DB.prepare("INSERT INTO products VALUES ('retained','{\"id\":\"retained\"}')").run();
+  await env.DB.prepare('UPDATE migration_control SET writes_enabled=0 WHERE id=1').run();
+  await assert.rejects(env.DB.prepare("INSERT INTO products VALUES ('late','{\"id\":\"late\"}')").run());
+  await assert.rejects(env.DB.prepare("UPDATE products SET data='{\"id\":\"retained\",\"changed\":true}' WHERE id='retained'").run());
+  await assert.rejects(env.DB.prepare("DELETE FROM products WHERE id='retained'").run());
+  await assert.rejects(env.DB.prepare("INSERT INTO verification(id,identifier,value,expiresAt) VALUES ('late','late','offline',1)").run());
+  assert.equal((await call('/api/products')).status, 503);
+  assert.equal((await call('/api/health')).body.writesEnabled, false);
 });
 
 test('failed verification delivery cannot authenticate; resend recovers the unverified account', async () => {
