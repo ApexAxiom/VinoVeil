@@ -21,6 +21,10 @@ npx --no-install wrangler d1 migrations list vinoveil-backend --remote
 npx --no-install wrangler d1 migrations apply vinoveil-backend --remote
 ```
 
+If the journal already records `0001_auth.sql` and `0002_data.sql` but `0003_write_fence.sql` failed with `incomplete input`, verify that the gate and triggers were rolled back before applying the pending migration. The repaired triggers use `WHEN ... IS NOT 1` with a single `BEGIN ... END` body, avoiding the nested `CASE ... END` form implicated in [Cloudflare issue 4727](https://github.com/cloudflare/workers-sdk/issues/4727). Local parsing and fence tests do not establish remote success: root must read back the journal, closed gate, and all 33 trigger names after apply. An already-applied `0003` requires separate review; do not replay it or alter its journal entry.
+
+Keep migration files LF-only as enforced by `.gitattributes`; Windows CRLF conversion is a separate reported trigger-migration issue ([14991](https://github.com/cloudflare/workers-sdk/issues/14991)), not an explanation for an LF-only failure.
+
 3. First deployment stays fully paused. Missing provider AUTH_SECRET is allowed only in this state, so root can install it after the Worker exists:
 
 ```powershell

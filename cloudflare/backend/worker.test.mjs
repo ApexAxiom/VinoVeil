@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { before, after, beforeEach, test } from 'node:test';
 import { readFile } from 'node:fs/promises';
 import { getMigrations } from 'better-auth/db/migration';
+import { unstable_splitSqlQuery } from 'wrangler';
 import { testPlatform } from './test-platform.mjs';
 import { authOptions } from './auth.mjs';
 import worker from './worker.mjs';
@@ -14,9 +15,14 @@ before(async () => {
   env = { ...platform.env, AUTH_SECRET: 'offline-test-secret-never-used-in-production-0123456789', TRAFFIC_ENABLED: 'true', EMAIL_ENABLED: 'true', EMAIL_FROM: 'noreply@example.invalid', CONTACT_TO_EMAIL: 'owner@example.invalid',
     EMAIL: { async send(message) { emails.push(message); return { messageId: 'offline-delivery' }; } } };
   for (const file of ['0001_auth.sql', '0002_data.sql', '0003_write_fence.sql']) {
-    const sql = (await readFile(new URL(`./migrations/${file}`, import.meta.url), 'utf8')).replace(/^--.*$/gm, '');
-    for (const statement of sql.split(/\r?\n/).map(value => value.trim()).filter(Boolean)) await env.DB.prepare(statement).run();
+    const sql = await readFile(new URL(`./migrations/${file}`, import.meta.url), 'utf8');
+    assert(!sql.includes('\r'), `${file} must keep LF line endings for D1 migration parsing`);
+    // Exercise Wrangler's statement boundaries rather than assuming one SQL statement per line.
+    const statements = unstable_splitSqlQuery(sql);
+    if (file === '0003_write_fence.sql') assert.equal(statements.length, 35);
+    for (const statement of statements) await env.DB.prepare(statement).run();
   }
+  assert.equal((await env.DB.prepare('SELECT writes_enabled FROM migration_control WHERE id=1').first()).writes_enabled, 0);
 });
 after(async () => { await platform?.dispose(); });
 beforeEach(async () => {
@@ -133,12 +139,50 @@ test('pinned schema is complete, ownership keys enforce referential integrity an
   assert.equal((await post('/api/auth/sign-up/email', { email: 'paused@example.invalid', password, name: 'Offline paused' }, { bindings: paused })).status, 503);
   assert.equal((await env.DB.prepare('SELECT count(*) AS n FROM user').first()).n, 0);
   assert.deepEqual((await call('/api/health', { bindings: paused })).body, { releaseSha: '1'.repeat(40), trafficEnabled: false, emailEnabled: true, writesEnabled: true, authConfigured: true });
-  await env.DB.prepare("INSERT INTO products VALUES ('retained','{\"id\":\"retained\"}')").run();
+  // Valid rows exist only in disposable local D1. Parent rows precede their dependents.
+  const rows = Object.entries({
+    user: { id: 'fence-user', name: 'Offline fence', email: 'fence@example.invalid', emailVerified: 0, createdAt: 1, updatedAt: 1 },
+    session: { id: 'fence-session', expiresAt: 1, token: 'offline-fence-token', createdAt: 1, updatedAt: 1, userId: 'fence-user' },
+    account: { id: 'fence-account', accountId: 'fence-user', providerId: 'credential', userId: 'fence-user', createdAt: 1, updatedAt: 1 },
+    verification: { id: 'fence-verification', identifier: 'offline', value: 'offline', expiresAt: 1, createdAt: 1, updatedAt: 1 },
+    rateLimit: { id: 'fence-rate', key: 'offline-rate', count: 1, lastRequest: 1 },
+    products: { id: 'fence-product', data: '{"id":"fence-product"}' },
+    product_variants: { id: 'fence-variant', product_id: 'fence-product', data: '{"id":"fence-variant"}' },
+    orders: { id: 'fence-order', owner_id: 'fence-user', data: '{"id":"fence-order"}' },
+    user_profiles: { owner_id: 'fence-user', data: '{"owner":"fence-user"}' },
+    contact_messages: { id: 'fence-contact', data: '{}' },
+    contact_rate_limit: { key: 'offline-contact', window: 1, count: 1 },
+  }).map(([table, row]) => {
+    const columns = Object.keys(row);
+    const key = columns[0];
+    return {
+      table,
+      insert: () => env.DB.prepare(`INSERT INTO "${table}" (${columns.map(column => `"${column}"`).join(',')}) VALUES (${columns.map(() => '?').join(',')})`).bind(...Object.values(row)).run(),
+      update: () => env.DB.prepare(`UPDATE "${table}" SET "${key}"="${key}" WHERE "${key}"=?`).bind(row[key]).run(),
+      delete: () => env.DB.prepare(`DELETE FROM "${table}" WHERE "${key}"=?`).bind(row[key]).run(),
+    };
+  });
+  const triggers = await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='trigger'").all();
+  assert.deepEqual(triggers.results.map(row => row.name).sort(), rows.flatMap(({ table }) => ['insert', 'update', 'delete'].map(operation => `fence_${table}_${operation}`)).sort());
+  for (const row of rows) {
+    assert.equal((await row.insert()).meta.changes, 1);
+    assert.equal((await row.update()).meta.changes, 1);
+    row.retained = (await env.DB.prepare(`SELECT * FROM "${row.table}" ORDER BY 1`).all()).results;
+  }
+  for (const gate of ['UPDATE migration_control SET writes_enabled=0 WHERE id=1', 'DELETE FROM migration_control WHERE id=1']) {
+    await env.DB.prepare(gate).run();
+    for (const row of rows) {
+      for (const operation of ['insert', 'update', 'delete']) {
+        await assert.rejects(row[operation](), /Application writes are paused/, `${row.table} ${operation}: ${gate}`);
+      }
+      assert.deepEqual((await env.DB.prepare(`SELECT * FROM "${row.table}" ORDER BY 1`).all()).results, row.retained, `${row.table} content is retained`);
+    }
+    assert.equal((await call('/api/products')).status, 503);
+    assert.equal((await call('/api/health')).body.writesEnabled, false);
+  }
+  await env.DB.prepare('INSERT INTO migration_control(id,writes_enabled) VALUES(1,1)').run();
+  for (const row of [...rows].reverse()) assert.equal((await row.delete()).meta.changes, 1);
   await env.DB.prepare('UPDATE migration_control SET writes_enabled=0 WHERE id=1').run();
-  await assert.rejects(env.DB.prepare("INSERT INTO products VALUES ('late','{\"id\":\"late\"}')").run());
-  await assert.rejects(env.DB.prepare("UPDATE products SET data='{\"id\":\"retained\",\"changed\":true}' WHERE id='retained'").run());
-  await assert.rejects(env.DB.prepare("DELETE FROM products WHERE id='retained'").run());
-  await assert.rejects(env.DB.prepare("INSERT INTO verification(id,identifier,value,expiresAt) VALUES ('late','late','offline',1)").run());
   assert.equal((await call('/api/products')).status, 503);
   assert.equal((await call('/api/health')).body.writesEnabled, false);
 });
